@@ -3,6 +3,7 @@
 엔진은 커넥션 풀을 들고 있으므로 프로세스당 하나만 만든다(lru_cache).
 요청마다 엔진을 새로 만들면 커넥션이 누적되어 Postgres max_connections에 걸린다.
 """
+
 from collections.abc import Iterator
 from functools import lru_cache
 

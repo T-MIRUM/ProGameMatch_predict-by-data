@@ -41,7 +41,7 @@ testpaths = ["tests"]
 markers = ["db: PostgreSQL이 필요한 통합 테스트 (DATABASE_URL 필요)"]
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]

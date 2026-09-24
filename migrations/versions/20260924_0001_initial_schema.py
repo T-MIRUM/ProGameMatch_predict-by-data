@@ -6,6 +6,7 @@ Revision ID: 0001
 Revises:
 Create Date: 2026-09-24
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -35,16 +36,14 @@ def upgrade() -> None:
         sa.Column("score_a", sa.SmallInteger(), nullable=True),
         sa.Column("score_b", sa.SmallInteger(), nullable=True),
         sa.UniqueConstraint("source_match_id", name="matches_source_match_id_key"),
-        sa.UniqueConstraint("season", "tournament", "stage", "match_type", "match_name",
-                            name="uq_matches_natural_key"),
+        sa.UniqueConstraint("season", "tournament", "stage", "match_type", "match_name", name="uq_matches_natural_key"),
     )
     op.create_index("idx_matches_season", "matches", ["season"])
 
     op.create_table(
         "map_games",
         sa.Column("map_game_id", sa.Integer(), primary_key=True),
-        sa.Column("match_id", sa.Integer(), sa.ForeignKey("matches.match_id", ondelete="CASCADE"),
-                  nullable=False),
+        sa.Column("match_id", sa.Integer(), sa.ForeignKey("matches.match_id", ondelete="CASCADE"), nullable=False),
         sa.Column("source_game_id", sa.Integer(), nullable=True),
         sa.Column("map_name", sa.Text(), nullable=False),
         sa.Column("map_order", sa.SmallInteger(), nullable=True),
@@ -53,15 +52,17 @@ def upgrade() -> None:
         sa.Column("score_b", sa.SmallInteger(), nullable=True),
         sa.Column("team_a_first_half_side", sa.String(3), nullable=True),
         sa.UniqueConstraint("match_id", "map_name", name="uq_map_games_match_map"),
-        sa.CheckConstraint(f"team_a_first_half_side IS NULL OR team_a_first_half_side IN ({SIDE})",
-                           name="ck_map_games_first_half_side"),
+        sa.CheckConstraint(
+            f"team_a_first_half_side IS NULL OR team_a_first_half_side IN ({SIDE})", name="ck_map_games_first_half_side"
+        ),
     )
 
     op.create_table(
         "rounds",
         sa.Column("round_id", sa.BigInteger(), primary_key=True),
-        sa.Column("map_game_id", sa.Integer(), sa.ForeignKey("map_games.map_game_id", ondelete="CASCADE"),
-                  nullable=False),
+        sa.Column(
+            "map_game_id", sa.Integer(), sa.ForeignKey("map_games.map_game_id", ondelete="CASCADE"), nullable=False
+        ),
         sa.Column("round_number", sa.SmallInteger(), nullable=False),
         sa.Column("team_a_side", sa.String(3), nullable=True),
         sa.Column("team_a_loadout", sa.Integer(), nullable=True),

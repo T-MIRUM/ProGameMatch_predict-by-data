@@ -3,6 +3,7 @@
 설정을 코드 곳곳에서 os.environ으로 직접 읽으면 기본값과 타입이 흩어진다.
 pydantic-settings로 한 곳에 모아 두면 잘못된 값이 시작 시점에 바로 드러난다.
 """
+
 from functools import lru_cache
 from pathlib import Path
 

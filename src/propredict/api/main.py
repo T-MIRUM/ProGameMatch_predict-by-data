@@ -4,6 +4,7 @@ Phase 1에서는 스택이 뜨는지 확인할 /api/health만 제공한다.
 모델 로드는 lifespan에서 '앱 시작 시 1회' 수행하도록 자리를 잡아 두고, Phase 4에서 채운다
 (요청마다 모델을 읽으면 디스크 I/O 때문에 500ms 응답 목표를 지킬 수 없다).
 """
+
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Literal

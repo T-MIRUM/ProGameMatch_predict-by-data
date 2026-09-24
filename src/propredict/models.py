@@ -25,6 +25,7 @@
 6. 구매 유형·진영은 PostgreSQL ENUM 대신 CHECK 제약
    ENUM은 값 추가/변경 마이그레이션이 번거롭다. CHECK는 제약만 교체하면 된다.
 """
+
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
@@ -126,10 +127,6 @@ class Round(Base):
         CheckConstraint("winner IN ('A', 'B')", name="ck_rounds_winner"),
         CheckConstraint("round_number >= 1", name="ck_rounds_round_number"),
         CheckConstraint(f"team_a_side IS NULL OR {_in('team_a_side', SIDES)}", name="ck_rounds_side"),
-        CheckConstraint(
-            f"team_a_buy_type IS NULL OR {_in('team_a_buy_type', BUY_TYPES)}", name="ck_rounds_buy_type_a"
-        ),
-        CheckConstraint(
-            f"team_b_buy_type IS NULL OR {_in('team_b_buy_type', BUY_TYPES)}", name="ck_rounds_buy_type_b"
-        ),
+        CheckConstraint(f"team_a_buy_type IS NULL OR {_in('team_a_buy_type', BUY_TYPES)}", name="ck_rounds_buy_type_a"),
+        CheckConstraint(f"team_b_buy_type IS NULL OR {_in('team_b_buy_type', BUY_TYPES)}", name="ck_rounds_buy_type_b"),
     )
