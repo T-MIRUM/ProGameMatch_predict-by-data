@@ -1,0 +1,10 @@
+# 원본 Kaggle CSV는 용량·라이선스 문제로 커밋하지 않는다. 폴더 구조만 유지하려고 .gitkeep은 예외 처리.
+data/raw/*
+!data/raw/.gitkeep
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,937 @@
+{
+  "root": "data/raw/archive",
+  "years": [
+    "vct_2021",
+    "vct_2022",
+    "vct_2023",
+    "vct_2024",
+    "vct_2025",
+    "vct_2026"
+  ],
+  "schema": {
+    "agents/agents_pick_rates.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Map",
+        "Agent",
+        "Pick Rate"
+      ]
+    },
+    "agents/maps_stats.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Map",
+        "Total Maps Played",
+        "Attacker Side Win Percentage",
+        "Defender Side Win Percentage"
+      ]
+    },
+    "agents/teams_picked_agents.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Map",
+        "Team",
+        "Agent",
+        "Total Wins By Map",
+        "Total Loss By Map",
+        "Total Maps Played"
+      ]
+    },
+    "ids/players_ids.csv": {
+      "consistent": true,
+      "headers": [
+        "Player",
+        "Player ID"
+      ]
+    },
+    "ids/teams_ids.csv": {
+      "consistent": true,
+      "headers": [
+        "Team",
+        "Team ID"
+      ]
+    },
+    "ids/tournaments_stages_match_types_ids.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Tournament ID",
+        "Stage",
+        "Stage ID",
+        "Match Type",
+        "Match Type ID"
+      ]
+    },
+    "ids/tournaments_stages_matches_games_ids.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Tournament ID",
+        "Stage",
+        "Stage ID",
+        "Match Type",
+        "Match Name",
+        "Match ID",
+        "Map",
+        "Game ID"
+      ]
+    },
+    "matches/draft_phase.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Team",
+        "Action",
+        "Map"
+      ]
+    },
+    "matches/eco_rounds.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Round Number",
+        "Team",
+        "Loadout Value",
+        "Remaining Credits",
+        "Type",
+        "Outcome"
+      ]
+    },
+    "matches/eco_stats.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Team",
+        "Type",
+        "Initiated",
+        "Won"
+      ]
+    },
+    "matches/kills.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Player Team",
+        "Player",
+        "Enemy Team",
+        "Enemy",
+        "Player Kills",
+        "Enemy Kills",
+        "Difference",
+        "Kill Type"
+      ]
+    },
+    "matches/kills_stats.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Team",
+        "Player",
+        "Agents",
+        "2k",
+        "3k",
+        "4k",
+        "5k",
+        "1v1",
+        "1v2",
+        "1v3",
+        "1v4",
+        "1v5",
+        "Econ",
+        "Spike Plants",
+        "Spike Defuses"
+      ]
+    },
+    "matches/maps_played.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map"
+      ]
+    },
+    "matches/maps_scores.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Team A",
+        "Team A Score",
+        "Team A Attacker Score",
+        "Team A Defender Score",
+        "Team A Overtime Score",
+        "Team B",
+        "Team B Score",
+        "Team B Attacker Score",
+        "Team B Defender Score",
+        "Team B Overtime Score",
+        "Duration"
+      ]
+    },
+    "matches/overview.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Player",
+        "Team",
+        "Agents",
+        "Rating",
+        "Average Combat Score",
+        "Kills",
+        "Deaths",
+        "Assists",
+        "Kills - Deaths (KD)",
+        "Kill, Assist, Trade, Survive %",
+        "Average Damage Per Round",
+        "Headshot %",
+        "First Kills",
+        "First Deaths",
+        "Kills - Deaths (FKD)",
+        "Side"
+      ]
+    },
+    "matches/rounds_kills.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Round Number",
+        "Eliminator Team",
+        "Eliminator",
+        "Eliminator Agent",
+        "Eliminated Team",
+        "Eliminated",
+        "Eliminated Agent",
+        "Kill Type"
+      ]
+    },
+    "matches/scores.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Team A",
+        "Team B",
+        "Team A Score",
+        "Team B Score",
+        "Match Result"
+      ]
+    },
+    "matches/team_mapping.csv": {
+      "consistent": true,
+      "headers": [
+        "Abbreviated",
+        "Full Name"
+      ]
+    },
+    "matches/win_loss_methods_count.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Team",
+        "Elimination",
+        "Detonated",
+        "Defused",
+        "Time Expiry (No Plant)",
+        "Eliminated",
+        "Defused Failed",
+        "Detonation Denied",
+        "Time Expiry (Failed to Plant)"
+      ]
+    },
+    "matches/win_loss_methods_round_number.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Match Name",
+        "Map",
+        "Round Number",
+        "Team",
+        "Method",
+        "Outcome"
+      ]
+    },
+    "players_stats/players_stats.csv": {
+      "consistent": true,
+      "headers": [
+        "Tournament",
+        "Stage",
+        "Match Type",
+        "Player",
+        "Teams",
+        "Agents",
+        "Rounds Played",
+        "Rating",
+        "Average Combat Score",
+        "Kills:Deaths",
+        "Kill, Assist, Trade, Survive %",
+        "Average Damage Per Round",
+        "Kills Per Round",
+        "Assists Per Round",
+        "First Kills Per Round",
+        "First Deaths Per Round",
+        "Headshot %",
+        "Clutch Success %",
+        "Clutches (won/played)",
+        "Maximum Kills in a Single Map",
+        "Kills",
+        "Deaths",
+        "Assists",
+        "First Kills",
+        "First Deaths"
+      ]
+    }
+  },
+  "per_year": {
+    "vct_2021": {
+      "rows": {
+        "scores": 7224,
+        "eco_rounds": 363518,
+        "win_loss_rounds": 580342,
+        "maps_scores": 14503,
+        "ids_games": 14489,
+        "draft_phase": 3378,
+        "rounds_kills": 788047
+      },
+      "tournaments": 142,
+      "ids": {
+        "has_match_id_column": true,
+        "composite_keys": 7223,
+        "composite_keys_with_multiple_match_ids": 2,
+        "colliding_keys": [
+          [
+            "Champions Tour Japan Stage 1: Challengers 2",
+            "Qualifier",
+            "Group B",
+            "BLUE BEES.ESP vs LFT"
+          ],
+          [
+            "Champions Tour Japan Stage 2: Challengers 2",
+            "Open Qualifier",
+            "Group C",
+            "No Country vs Sengoku Gaming"
+          ]
+        ],
+        "scores_duplicate_rows": 4
+      },
+      "eco_rounds": {
+        "nulls": 0,
+        "exact_duplicate_rows": 259,
+        "maps_joinable_to_win_loss": 1.0,
+        "tournament_names_not_in_scores": [],
+        "unparseable_money": {
+          "Loadout Value": 0,
+          "Remaining Credits": 0
+        },
+        "types": {
+          "Full buy: 20k+": 206723,
+          "Semi-buy: 10-20k": 76976,
+          "Eco: 0-5k": 53572,
+          "Semi-eco: 5-10k": 26247
+        },
+        "outcomes": {
+          "Win": 181759,
+          "Loss": 181759
+        },
+        "rounds": 181591,
+        "rounds_rows_ne_2": 168,
+        "rounds_wins_ne_1": 168,
+        "maps": 9010,
+        "maps_in_win_loss": 14412,
+        "map_coverage_vs_win_loss": 0.6252,
+        "maps_with_round_gaps": 0,
+        "maps_fewer_rounds_than_win_loss": 0,
+        "max_round_number": 46
+      },
+      "draft": {
+        "matches": 7222,
+        "matches_with_draft": 871,
+        "coverage": 0.1206,
+        "actions": {
+          "pick": 2115,
+          "ban": 1263
+        }
+      },
+      "rounds_kills": {
+        "mean_rows_per_round": 4.46,
+        "kill_types": [
+          "1v1",
+          "1v2",
+          "1v3",
+          "1v4",
+          "1v5",
+          "2k",
+          "3k",
+          "4k",
+          "5k"
+        ]
+      },
+      "sides": {
+        "maps": 14412,
+        "decisive_round_share": 0.2854,
+        "halves_with_side_known": 0.8848,
+        "halves_conflicting": 12,
+        "maps_both_halves_known": 0.7803,
+        "halftime_swap_consistent": 0.9997,
+        "ot_decisive_rounds": 1406,
+        "ot_rule_match_rate": 1.0
+      },
+      "maps_scores_semantics": {
+        "maps_checked": 14301,
+        "hyp_first_second_half_match": 0.9973,
+        "hyp_attacker_defender_match": 0.5155
+      },
+      "eco_team_names": {
+        "maps_compared_with_win_loss": 9010,
+        "maps_team_mismatch_vs_win_loss": 0,
+        "examples": [],
+        "matches_team_mismatch_vs_scores": 0,
+        "matches_compared_with_scores": 4318
+      },
+      "loadout_null_by_tournament": {},
+      "maps_scores_attacker_nonnull": 1.0
+    },
+    "vct_2022": {
+      "rows": {
+        "scores": 3842,
+        "eco_rounds": 358798,
+        "win_loss_rounds": 359210,
+        "maps_scores": 8884,
+        "ids_games": 8864,
+        "draft_phase": 7432,
+        "rounds_kills": 776476
+      },
+      "tournaments": 58,
+      "ids": {
+        "has_match_id_column": true,
+        "composite_keys": 3842,
+        "composite_keys_with_multiple_match_ids": 0,
+        "colliding_keys": [],
+        "scores_duplicate_rows": 0
+      },
+      "eco_rounds": {
+        "nulls": 0,
+        "exact_duplicate_rows": 156,
+        "maps_joinable_to_win_loss": 1.0,
+        "tournament_names_not_in_scores": [],
+        "unparseable_money": {
+          "Loadout Value": 0,
+          "Remaining Credits": 0
+        },
+        "types": {
+          "Full buy: 20k+": 204232,
+          "Semi-buy: 10-20k": 76359,
+          "Eco: 0-5k": 52906,
+          "Semi-eco: 5-10k": 25301
+        },
+        "outcomes": {
+          "Loss": 179399,
+          "Win": 179399
+        },
+        "rounds": 179321,
+        "rounds_rows_ne_2": 78,
+        "rounds_wins_ne_1": 78,
+        "maps": 8822,
+        "maps_in_win_loss": 8835,
+        "map_coverage_vs_win_loss": 0.9985,
+        "maps_with_round_gaps": 0,
+        "maps_fewer_rounds_than_win_loss": 0,
+        "max_round_number": 44
+      },
+      "draft": {
+        "matches": 3842,
+        "matches_with_draft": 1272,
+        "coverage": 0.3311,
+        "actions": {
+          "ban": 4670,
+          "pick": 2762
+        }
+      },
+      "rounds_kills": {
+        "mean_rows_per_round": 4.45,
+        "kill_types": [
+          "1v1",
+          "1v2",
+          "1v3",
+          "1v4",
+          "1v5",
+          "2k",
+          "3k",
+          "4k",
+          "5k"
+        ]
+      },
+      "sides": {
+        "maps": 8835,
+        "decisive_round_share": 0.28,
+        "halves_with_side_known": 0.8886,
+        "halves_conflicting": 3,
+        "maps_both_halves_known": 0.7874,
+        "halftime_swap_consistent": 1.0,
+        "ot_decisive_rounds": 779,
+        "ot_rule_match_rate": 1.0
+      },
+      "maps_scores_semantics": {
+        "maps_checked": 8793,
+        "hyp_first_second_half_match": 0.9974,
+        "hyp_attacker_defender_match": 0.5378
+      },
+      "eco_team_names": {
+        "maps_compared_with_win_loss": 8822,
+        "maps_team_mismatch_vs_win_loss": 0,
+        "examples": [],
+        "matches_team_mismatch_vs_scores": 0,
+        "matches_compared_with_scores": 3840
+      },
+      "loadout_null_by_tournament": {},
+      "maps_scores_attacker_nonnull": 1.0
+    },
+    "vct_2023": {
+      "rows": {
+        "scores": 331,
+        "eco_rounds": 33032,
+        "win_loss_rounds": 35514,
+        "maps_scores": 830,
+        "ids_games": 830,
+        "draft_phase": 1898,
+        "rounds_kills": 70078
+      },
+      "tournaments": 10,
+      "ids": {
+        "has_match_id_column": true,
+        "composite_keys": 331,
+        "composite_keys_with_multiple_match_ids": 0,
+        "colliding_keys": [],
+        "scores_duplicate_rows": 0
+      },
+      "eco_rounds": {
+        "nulls": 0,
+        "exact_duplicate_rows": 0,
+        "maps_joinable_to_win_loss": 1.0,
+        "tournament_names_not_in_scores": [],
+        "unparseable_money": {
+          "Loadout Value": 0,
+          "Remaining Credits": 0
+        },
+        "types": {
+          "Full buy: 20k+": 18248,
+          "Semi-buy: 10-20k": 8383,
+          "Eco: 0-5k": 4632,
+          "Semi-eco: 5-10k": 1769
+        },
+        "outcomes": {
+          "Win": 16516,
+          "Loss": 16516
+        },
+        "rounds": 16516,
+        "rounds_rows_ne_2": 0,
+        "rounds_wins_ne_1": 0,
+        "maps": 771,
+        "maps_in_win_loss": 830,
+        "map_coverage_vs_win_loss": 0.9289,
+        "maps_with_round_gaps": 0,
+        "maps_fewer_rounds_than_win_loss": 0,
+        "max_round_number": 40
+      },
+      "draft": {
+        "matches": 331,
+        "matches_with_draft": 316,
+        "coverage": 0.9547,
+        "actions": {
+          "ban": 1216,
+          "pick": 682
+        }
+      },
+      "rounds_kills": {
+        "mean_rows_per_round": 4.41,
+        "kill_types": [
+          "1v1",
+          "1v2",
+          "1v3",
+          "1v4",
+          "1v5",
+          "2k",
+          "3k",
+          "4k",
+          "5k"
+        ]
+      },
+      "sides": {
+        "maps": 830,
+        "decisive_round_share": 0.3542,
+        "halves_with_side_known": 0.9524,
+        "halves_conflicting": 0,
+        "maps_both_halves_known": 0.9048,
+        "halftime_swap_consistent": 1.0,
+        "ot_decisive_rounds": 121,
+        "ot_rule_match_rate": 1.0
+      },
+      "maps_scores_semantics": {
+        "maps_checked": 829,
+        "hyp_first_second_half_match": 1.0,
+        "hyp_attacker_defender_match": 0.522
+      },
+      "eco_team_names": {
+        "maps_compared_with_win_loss": 771,
+        "maps_team_mismatch_vs_win_loss": 0,
+        "examples": [],
+        "matches_team_mismatch_vs_scores": 0,
+        "matches_compared_with_scores": 312
+      },
+      "loadout_null_by_tournament": {},
+      "maps_scores_attacker_nonnull": 1.0
+    },
+    "vct_2024": {
+      "rows": {
+        "scores": 434,
+        "eco_rounds": 34514,
+        "win_loss_rounds": 46754,
+        "maps_scores": 1104,
+        "ids_games": 1104,
+        "draft_phase": 2604,
+        "rounds_kills": 72660
+      },
+      "tournaments": 15,
+      "ids": {
+        "has_match_id_column": true,
+        "composite_keys": 434,
+        "composite_keys_with_multiple_match_ids": 0,
+        "colliding_keys": [],
+        "scores_duplicate_rows": 0
+      },
+      "eco_rounds": {
+        "nulls": 0,
+        "exact_duplicate_rows": 0,
+        "maps_joinable_to_win_loss": 1.0,
+        "tournament_names_not_in_scores": [],
+        "unparseable_money": {
+          "Loadout Value": 0,
+          "Remaining Credits": 0
+        },
+        "types": {
+          "Full buy: 20k+": 19295,
+          "Semi-buy: 10-20k": 8560,
+          "Eco: 0-5k": 4928,
+          "Semi-eco: 5-10k": 1731
+        },
+        "outcomes": {
+          "Win": 17257,
+          "Loss": 17257
+        },
+        "rounds": 17257,
+        "rounds_rows_ne_2": 0,
+        "rounds_wins_ne_1": 0,
+        "maps": 815,
+        "maps_in_win_loss": 1104,
+        "map_coverage_vs_win_loss": 0.7382,
+        "maps_with_round_gaps": 0,
+        "maps_fewer_rounds_than_win_loss": 0,
+        "max_round_number": 38
+      },
+      "draft": {
+        "matches": 434,
+        "matches_with_draft": 434,
+        "coverage": 1.0,
+        "actions": {
+          "ban": 1684,
+          "pick": 920
+        }
+      },
+      "rounds_kills": {
+        "mean_rows_per_round": 4.38,
+        "kill_types": [
+          "1v1",
+          "1v2",
+          "1v3",
+          "1v4",
+          "1v5",
+          "2k",
+          "3k",
+          "4k",
+          "5k"
+        ]
+      },
+      "sides": {
+        "maps": 1104,
+        "decisive_round_share": 0.3485,
+        "halves_with_side_known": 0.9502,
+        "halves_conflicting": 0,
+        "maps_both_halves_known": 0.9031,
+        "halftime_swap_consistent": 1.0,
+        "ot_decisive_rounds": 124,
+        "ot_rule_match_rate": 1.0
+      },
+      "maps_scores_semantics": {
+        "maps_checked": 1103,
+        "hyp_first_second_half_match": 1.0,
+        "hyp_attacker_defender_match": 0.5181
+      },
+      "eco_team_names": {
+        "maps_compared_with_win_loss": 815,
+        "maps_team_mismatch_vs_win_loss": 0,
+        "examples": [],
+        "matches_team_mismatch_vs_scores": 0,
+        "matches_compared_with_scores": 320
+      },
+      "loadout_null_by_tournament": {},
+      "maps_scores_attacker_nonnull": 1.0
+    },
+    "vct_2025": {
+      "rows": {
+        "scores": 503,
+        "eco_rounds": 25182,
+        "win_loss_rounds": 53950,
+        "maps_scores": 1277,
+        "ids_games": 1277,
+        "draft_phase": 2988,
+        "rounds_kills": 89088
+      },
+      "tournaments": 15,
+      "ids": {
+        "has_match_id_column": true,
+        "composite_keys": 503,
+        "composite_keys_with_multiple_match_ids": 0,
+        "colliding_keys": [],
+        "scores_duplicate_rows": 0
+      },
+      "eco_rounds": {
+        "nulls": 2550,
+        "exact_duplicate_rows": 0,
+        "maps_joinable_to_win_loss": 0.0995,
+        "tournament_names_not_in_scores": [
+          "Champions Tour 2025: Americas Kickoff",
+          "Champions Tour 2025: Americas Stage 1",
+          "Champions Tour 2025: EMEA Kickoff",
+          "Champions Tour 2025: EMEA Stage 1",
+          "Champions Tour 2025: Masters Bangkok",
+          "Champions Tour 2025: Pacific Kickoff",
+          "Champions Tour 2025: Pacific Stage 1"
+        ],
+        "unparseable_money": {
+          "Loadout Value": 2550,
+          "Remaining Credits": 0
+        },
+        "types": {
+          "Full buy: 20k+": 14517,
+          "Semi-buy: 10-20k": 5663,
+          "Eco: 0-5k": 3597,
+          "Semi-eco: 5-10k": 1405
+        },
+        "outcomes": {
+          "Loss": 12591,
+          "Win": 12591
+        },
+        "rounds": 12591,
+        "rounds_rows_ne_2": 0,
+        "rounds_wins_ne_1": 0,
+        "maps": 593,
+        "maps_in_win_loss": 1276,
+        "map_coverage_vs_win_loss": 0.4647,
+        "maps_with_round_gaps": 0,
+        "maps_fewer_rounds_than_win_loss": 0,
+        "max_round_number": 48
+      },
+      "draft": {
+        "matches": 503,
+        "matches_with_draft": 498,
+        "coverage": 0.9901,
+        "actions": {
+          "ban": 1932,
+          "pick": 1056
+        }
+      },
+      "rounds_kills": {
+        "mean_rows_per_round": 4.4,
+        "kill_types": [
+          "1v1",
+          "1v2",
+          "1v3",
+          "1v4",
+          "1v5",
+          "2k",
+          "3k",
+          "4k",
+          "5k"
+        ]
+      },
+      "sides": {
+        "maps": 1276,
+        "decisive_round_share": 0.3481,
+        "halves_with_side_known": 0.9404,
+        "halves_conflicting": 1,
+        "maps_both_halves_known": 0.8817,
+        "halftime_swap_consistent": 1.0,
+        "ot_decisive_rounds": 129,
+        "ot_rule_match_rate": 1.0
+      },
+      "maps_scores_semantics": {
+        "maps_checked": 1274,
+        "hyp_first_second_half_match": 0.9984,
+        "hyp_attacker_defender_match": 0.545
+      },
+      "eco_team_names": {
+        "maps_compared_with_win_loss": 59,
+        "maps_team_mismatch_vs_win_loss": 0,
+        "examples": [],
+        "matches_team_mismatch_vs_scores": 0,
+        "matches_compared_with_scores": 24
+      },
+      "loadout_null_by_tournament": {
+        "Valorant Masters Toronto 2025": 2550
+      },
+      "maps_scores_attacker_nonnull": 1.0
+    },
+    "vct_2026": {
+      "rows": {
+        "scores": 342,
+        "eco_rounds": 28944,
+        "win_loss_rounds": 37502,
+        "maps_scores": 886,
+        "ids_games": 886,
+        "draft_phase": 2052,
+        "rounds_kills": 60895
+      },
+      "tournaments": 10,
+      "ids": {
+        "has_match_id_column": true,
+        "composite_keys": 342,
+        "composite_keys_with_multiple_match_ids": 0,
+        "colliding_keys": [],
+        "scores_duplicate_rows": 0
+      },
+      "eco_rounds": {
+        "nulls": 28944,
+        "exact_duplicate_rows": 0,
+        "maps_joinable_to_win_loss": 1.0,
+        "tournament_names_not_in_scores": [],
+        "unparseable_money": {
+          "Loadout Value": 28944,
+          "Remaining Credits": 0
+        },
+        "types": {
+          "Full buy: 20k+": 16860,
+          "Semi-buy: 10-20k": 6280,
+          "Eco: 0-5k": 4172,
+          "Semi-eco: 5-10k": 1632
+        },
+        "outcomes": {
+          "Loss": 14472,
+          "Win": 14472
+        },
+        "rounds": 14472,
+        "rounds_rows_ne_2": 0,
+        "rounds_wins_ne_1": 0,
+        "maps": 680,
+        "maps_in_win_loss": 886,
+        "map_coverage_vs_win_loss": 0.7675,
+        "maps_with_round_gaps": 0,
+        "maps_fewer_rounds_than_win_loss": 0,
+        "max_round_number": 38
+      },
+      "draft": {
+        "matches": 342,
+        "matches_with_draft": 342,
+        "coverage": 1.0,
+        "actions": {
+          "ban": 1320,
+          "pick": 732
+        }
+      },
+      "rounds_kills": {
+        "mean_rows_per_round": 4.37,
+        "kill_types": [
+          "1v1",
+          "1v2",
+          "1v3",
+          "1v4",
+          "1v5",
+          "2k",
+          "3k",
+          "4k",
+          "5k"
+        ]
+      },
+      "sides": {
+        "maps": 886,
+        "decisive_round_share": 0.3511,
+        "halves_with_side_known": 0.9515,
+        "halves_conflicting": 0,
+        "maps_both_halves_known": 0.9041,
+        "halftime_swap_consistent": 1.0,
+        "ot_decisive_rounds": 101,
+        "ot_rule_match_rate": 1.0
+      },
+      "maps_scores_semantics": {
+        "maps_checked": 886,
+        "hyp_first_second_half_match": 1.0,
+        "hyp_attacker_defender_match": 0.5293
+      },
+      "eco_team_names": {
+        "maps_compared_with_win_loss": 680,
+        "maps_team_mismatch_vs_win_loss": 0,
+        "examples": [],
+        "matches_team_mismatch_vs_scores": 0,
+        "matches_compared_with_scores": 264
+      },
+      "loadout_null_by_tournament": {
+        "VCT 2026: EMEA Stage 1": 4678,
+        "VCT 2026: Pacific Stage 1": 4578,
+        "VCT 2026: Americas Stage 1": 4426,
+        "VCT 2026: EMEA Kickoff": 3432,
+        "VCT 2026: Pacific Kickoff": 3412,
+        "VCT 2026: Americas Kickoff": 3280,
+        "Valorant Masters London 2026": 2654,
+        "Valorant Masters Santiago 2026": 2484
+      },
+      "maps_scores_attacker_nonnull": 1.0
+    }
+  }
+}
