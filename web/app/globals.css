@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/*
+ * 명세: 다크 테마 기본. 색은 여기 토큰으로만 정의하고 컴포넌트는 토큰 이름(bg-surface 등)만 쓴다.
+ * 나중에 색을 바꿀 때 한 곳만 고치면 되고, 차트(Recharts)도 같은 CSS 변수를 참조할 수 있다.
+ */
+@theme {
+  --color-bg: #0e1116;
+  --color-surface: #161b22;
+  --color-border: #2a313c;
+  --color-text: #e6edf3;
+  --color-muted: #8b949e;
+  --color-team-a: #4cc3a5;
+  --color-team-b: #f0616d;
+  --color-accent: #7aa2f7;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

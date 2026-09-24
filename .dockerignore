@@ -1,0 +1,11 @@
+# 빌드 컨텍스트에서 제외: 원본 데이터(1.3GB)가 들어가면 빌드가 수 분씩 느려지고 이미지에 데이터가 박힌다
+data/
+.git/
+.venv/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+web/node_modules/
+web/.next/
+reports/

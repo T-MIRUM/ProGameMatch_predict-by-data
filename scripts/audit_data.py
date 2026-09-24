@@ -6,6 +6,7 @@ reports/data_audit_stats.json 으로 남겨 리포트 수치의 출처를 재현
 
 실행: python scripts/audit_data.py [--raw data/raw]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -69,7 +70,7 @@ def infer_sides(wl: pd.DataFrame) -> dict:
     dec = win[win["side"].notna()].copy()
     dec["attacker"] = [
         t if s == "atk" else (ts[1] if ts[0] == t else ts[0])
-        for t, s, ts in zip(dec["Team"], dec["side"], dec["teams"])
+        for t, s, ts in zip(dec["Team"], dec["side"], dec["teams"], strict=True)
     ]
     reg = dec[dec["half"] != "OT"]
     per_half = reg.groupby(MAP_KEY + ["half"], observed=True)["attacker"].nunique()
@@ -97,8 +98,10 @@ def _attackers(wl: pd.DataFrame) -> pd.DataFrame:
     teams = wl.groupby(MAP_KEY)["Team"].agg(lambda s: tuple(sorted(s.unique())))
     win = win.join(teams.rename("teams"), on=MAP_KEY)
     d = win[win["side"].notna() & (win["teams"].map(len) == 2)].copy()
-    d["attacker"] = [t if s == "atk" else (ts[1] if ts[0] == t else ts[0])
-                     for t, s, ts in zip(d["Team"], d["side"], d["teams"])]
+    d["attacker"] = [
+        t if s == "atk" else (ts[1] if ts[0] == t else ts[0])
+        for t, s, ts in zip(d["Team"], d["side"], d["teams"], strict=True)
+    ]
     return d
 
 
@@ -164,14 +167,17 @@ def eco_team_names(eco: pd.DataFrame, wl: pd.DataFrame, scores: pd.DataFrame) ->
     j = pd.concat([eco_teams.rename("eco"), wl_teams.rename("wl")], axis=1, join="inner")
     mism = j[j["eco"] != j["wl"]]
     sc = scores.drop_duplicates(KEY, keep=False).set_index(KEY)
-    pair = pd.Series([frozenset([a, b]) for a, b in zip(sc["Team A"], sc["Team B"])], index=sc.index)
+    pair = pd.Series([frozenset([a, b]) for a, b in zip(sc["Team A"], sc["Team B"], strict=True)], index=sc.index)
     ej = eco_teams.reset_index(level="Map", drop=True)
     ej = ej[~ej.index.duplicated()]
     both = pd.concat([ej.rename("eco"), pair.rename("sc")], axis=1, join="inner")
-    return {"maps_compared_with_win_loss": int(len(j)), "maps_team_mismatch_vs_win_loss": int(len(mism)),
-            "examples": [sorted(x) + ["|"] + sorted(y) for x, y in mism.head(3).itertuples(index=False)],
-            "matches_team_mismatch_vs_scores": int((both["eco"] != both["sc"]).sum()),
-            "matches_compared_with_scores": int(len(both))}
+    return {
+        "maps_compared_with_win_loss": int(len(j)),
+        "maps_team_mismatch_vs_win_loss": int(len(mism)),
+        "examples": [sorted(x) + ["|"] + sorted(y) for x, y in mism.head(3).itertuples(index=False)],
+        "matches_team_mismatch_vs_scores": int((both["eco"] != both["sc"]).sum()),
+        "matches_compared_with_scores": int(len(both)),
+    }
 
 
 def audit_year(root: Path, y: str) -> dict:
@@ -192,7 +198,9 @@ def audit_year(root: Path, y: str) -> dict:
     # --- eco_rounds 품질 ---
     rows_per_round = eco.groupby(ROUND_KEY).size()
     wins_per_round = eco[eco["Outcome"] == "Win"].groupby(ROUND_KEY).size().reindex(rows_per_round.index, fill_value=0)
-    bad_money = {c: int((~eco[c].astype(str).str.match(MONEY_RE)).sum()) for c in ["Loadout Value", "Remaining Credits"]}
+    bad_money = {
+        c: int((~eco[c].astype(str).str.match(MONEY_RE)).sum()) for c in ["Loadout Value", "Remaining Credits"]
+    }
     eco_maps = eco.groupby(MAP_KEY).ngroups
     wl_maps = wl.groupby(MAP_KEY).ngroups
     # 맵 단위로 eco가 전체 라운드를 가지고 있는지 (모멘텀·스코어 피처는 빠진 라운드가 있으면 틀어진다)
@@ -210,8 +218,15 @@ def audit_year(root: Path, y: str) -> dict:
     rk_per_round = rk.groupby(ROUND_KEY).size()
 
     return {
-        "rows": {"scores": len(scores), "eco_rounds": len(eco), "win_loss_rounds": len(wl),
-                 "maps_scores": len(ms), "ids_games": len(ids), "draft_phase": len(draft), "rounds_kills": len(rk)},
+        "rows": {
+            "scores": len(scores),
+            "eco_rounds": len(eco),
+            "win_loss_rounds": len(wl),
+            "maps_scores": len(ms),
+            "ids_games": len(ids),
+            "draft_phase": len(draft),
+            "rounds_kills": len(rk),
+        },
         "tournaments": int(scores["Tournament"].nunique()),
         "ids": {
             "has_match_id_column": "Match ID" in ids.columns,
@@ -226,8 +241,14 @@ def audit_year(root: Path, y: str) -> dict:
             "exact_duplicate_rows": int(eco.duplicated().sum()),
             # eco의 (대회,스테이지,매치타입,매치명,맵) 키가 win_loss에 그대로 존재하는 비율.
             # 낮으면 대회명 표기가 파일마다 다르다는 뜻 -> 정규화 레이어 필요.
-            "maps_joinable_to_win_loss": round(len(set(map(tuple, eco[MAP_KEY].drop_duplicates().values))
-                                                   & set(map(tuple, wl[MAP_KEY].drop_duplicates().values))) / max(eco_maps, 1), 4),
+            "maps_joinable_to_win_loss": round(
+                len(
+                    set(map(tuple, eco[MAP_KEY].drop_duplicates().values))
+                    & set(map(tuple, wl[MAP_KEY].drop_duplicates().values))
+                )
+                / max(eco_maps, 1),
+                4,
+            ),
             "tournament_names_not_in_scores": sorted(set(eco["Tournament"]) - set(scores["Tournament"])),
             "unparseable_money": bad_money,
             "types": eco["Type"].value_counts().to_dict(),
@@ -242,11 +263,16 @@ def audit_year(root: Path, y: str) -> dict:
             "maps_fewer_rounds_than_win_loss": int((j["eco"] < j["wl"]).sum()),
             "max_round_number": int(eco["Round Number"].max()),
         },
-        "draft": {"matches": n_matches, "matches_with_draft": n_draft,
-                  "coverage": round(n_draft / n_matches, 4) if n_matches else None,
-                  "actions": draft["Action"].value_counts().to_dict()},
-        "rounds_kills": {"mean_rows_per_round": round(float(rk_per_round.mean()), 2),
-                         "kill_types": sorted(rk["Kill Type"].dropna().unique().tolist())},
+        "draft": {
+            "matches": n_matches,
+            "matches_with_draft": n_draft,
+            "coverage": round(n_draft / n_matches, 4) if n_matches else None,
+            "actions": draft["Action"].value_counts().to_dict(),
+        },
+        "rounds_kills": {
+            "mean_rows_per_round": round(float(rk_per_round.mean()), 2),
+            "kill_types": sorted(rk["Kill Type"].dropna().unique().tolist()),
+        },
         "sides": {**infer_sides(wl), **check_overtime_rule(wl)},
         "maps_scores_semantics": check_maps_scores_semantics(wl, ms),
         "eco_team_names": eco_team_names(eco, wl, scores),
