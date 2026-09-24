@@ -8,3 +8,17 @@ data/raw/*
 # Python
 __pycache__/
 *.pyc
+
+# Python tooling
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Secrets: 실제 접속 정보는 .env에만 두고 커밋하지 않는다 (.env.example이 템플릿)
+.env
+
+# Web
+node_modules/
+web/.next/
+web/next-env.d.ts
