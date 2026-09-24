@@ -1,0 +1,64 @@
+# CI: PR마다 "테스트가 통과하고, 스키마가 모델과 일치하고, 이미지가 빌드되는가"를 확인한다.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    services:
+      # 마이그레이션을 실제 PostgreSQL 16에서 검증한다 (SQLite로 대체하면 CHECK/시퀀스 동작이 달라 의미가 없다)
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: propredict
+          POSTGRES_PASSWORD: propredict
+          POSTGRES_DB: propredict
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U propredict" --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://propredict:propredict@localhost:5432/propredict
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - name: Lint
+        run: |
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+      - name: Migrations (upgrade -> drift check -> downgrade -> upgrade)
+        run: |
+          uv run --frozen alembic upgrade head
+          uv run --frozen alembic check
+          uv run --frozen alembic downgrade base
+          uv run --frozen alembic upgrade head
+      - name: Tests
+        run: uv run --frozen pytest -q
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # compose 파일 문법과 두 Dockerfile이 실제로 빌드되는지 확인
+      - run: docker compose config -q
+      - run: docker compose build
