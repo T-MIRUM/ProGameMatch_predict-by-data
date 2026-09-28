@@ -2,6 +2,7 @@
 
 실제 CSV와 같은 컬럼 형식을 만들어, 수십 MB 원본 없이도 변환 규칙을 검증한다.
 """
+
 from __future__ import annotations
 
 import pandas as pd
@@ -32,18 +33,47 @@ def win_loss(rounds: list[tuple[int, str, str]], teams=("Alpha", "Bravo"), map_n
 def eco(rounds: list[tuple[int, str, str, str, str, str]], map_name="Ascent", name="A vs B"):
     """rounds: [(라운드, 팀, 장비가치, 잔여크레딧, 구매유형, 'Win'|'Loss'), ...] — 라운드마다 팀별 1행."""
     rows = [
-        {**match_key(name), "Map": map_name, "Round Number": r, "Team": team,
-         "Loadout Value": lo, "Remaining Credits": cr, "Type": typ, "Outcome": out}
+        {
+            **match_key(name),
+            "Map": map_name,
+            "Round Number": r,
+            "Team": team,
+            "Loadout Value": lo,
+            "Remaining Credits": cr,
+            "Type": typ,
+            "Outcome": out,
+        }
         for r, team, lo, cr, typ, out in rounds
     ]
-    return pd.DataFrame(rows).astype({"Loadout Value": "string", "Remaining Credits": "string"})
+    cols = list(match_key(name)) + [
+        "Map",
+        "Round Number",
+        "Team",
+        "Loadout Value",
+        "Remaining Credits",
+        "Type",
+        "Outcome",
+    ]
+    # 빈 목록이어도 실제 CSV와 같은 컬럼을 갖게 해 'eco가 없는 시즌/맵'을 표현할 수 있게 한다
+    return pd.DataFrame(rows, columns=cols).astype({"Loadout Value": "string", "Remaining Credits": "string"})
 
 
 def scores(name="A vs B", teams=("Alpha", "Bravo"), score=(1, 0)):
-    return pd.DataFrame([{**match_key(name), "Team A": teams[0], "Team B": teams[1],
-                          "Team A Score": score[0], "Team B Score": score[1], "Match Result": f"{teams[0]} won"}])
+    return pd.DataFrame(
+        [
+            {
+                **match_key(name),
+                "Team A": teams[0],
+                "Team B": teams[1],
+                "Team A Score": score[0],
+                "Team B Score": score[1],
+                "Match Result": f"{teams[0]} won",
+            }
+        ]
+    )
 
 
 def ids(name="A vs B", maps=("Ascent",), match_id=100, first_game_id=1000):
-    return pd.DataFrame([{**match_key(name), "Map": m, "Match ID": match_id, "Game ID": first_game_id + i}
-                         for i, m in enumerate(maps)])
+    return pd.DataFrame(
+        [{**match_key(name), "Map": m, "Match ID": match_id, "Game ID": first_game_id + i} for i, m in enumerate(maps)]
+    )
