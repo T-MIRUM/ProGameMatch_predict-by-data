@@ -28,6 +28,7 @@ _KEY_RENAME = {
 MATCH_NK = ["season", "tournament", "stage", "match_type", "match_name"]  # DB 자연키
 MAP_NK = MATCH_NK + ["map_name"]
 ROUND_NK = MAP_NK + ["round_number"]
+INT_ROUND_COLS = ["round_number", "team_a_loadout", "team_b_loadout", "team_a_credits", "team_b_credits"]
 
 
 @dataclass
@@ -187,6 +188,14 @@ def transform_season(f: SeasonFrames) -> TransformResult:
     used = map_games[MATCH_NK].drop_duplicates()
     rep["matches_without_rounds"] = len(matches) - len(used)
     matches = matches.merge(used, on=MATCH_NK, how="inner")
+
+    # 조인·집계를 거치며 결측이 섞인 정수 컬럼은 pandas가 float로 바꾼다(52936 → 52936.0).
+    # DB의 INTEGER 컬럼에 그대로 넣으면 실패하므로, nullable 정수형(Int64)으로 명시해 되돌린다.
+    matches = matches.astype({c: "Int64" for c in ["score_a", "score_b", "source_match_id"]})
+    map_games = map_games.astype(
+        {c: "Int64" for c in ["source_game_id", "map_order", "total_rounds", "score_a", "score_b"]}
+    )
+    rounds = rounds.astype({c: "Int64" for c in INT_ROUND_COLS})
 
     rep.update(matches=len(matches), map_games=len(map_games), rounds=len(rounds))
     return TransformResult(matches=matches, map_games=map_games, rounds=rounds, report=rep)
