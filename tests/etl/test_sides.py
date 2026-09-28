@@ -24,9 +24,10 @@ def test_defuse_in_second_half_is_converted_back_to_first_half():
 
 
 def test_overtime_round_votes_with_parity():
-    # 26R(교대된 쪽)에서 Bravo가 설치 없이 시간 종료로 이김 → Bravo 수비 → Alpha 공격 → 전반 공격은 Bravo
+    # 26R은 전반과 반대 진영. Bravo가 설치 없이 시간 종료로 이김 → 26R에 Bravo 수비, Alpha 공격
+    # → 전반에는 Alpha 수비 → 전반 공격팀은 Bravo
     wl = win_loss([(26, "Bravo", "Time Expiry (No Plant)")])
-    assert infer_first_half_attacker(wl).loc[KEY] == "Alpha"
+    assert infer_first_half_attacker(wl).loc[KEY] == "Bravo"
 
 
 def test_elimination_only_map_is_unknown():
