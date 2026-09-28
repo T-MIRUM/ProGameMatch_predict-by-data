@@ -13,6 +13,7 @@
 그래서 맵 안의 결정적 라운드 하나하나를 "전반 공격팀은 누구였나"라는 하나의 질문으로 환산해 모으고,
 답이 하나로 모이면 맵 전체 진영을 채운다. 답이 엇갈리면(데이터 오류) 추측하지 않고 NULL로 둔다.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -60,9 +61,7 @@ def infer_first_half_attacker(win_loss: pd.DataFrame) -> pd.Series:
     )
     same = in_first_half_side(dec["Round Number"]).to_numpy()
     # 이 라운드의 공격팀 → 전반 공격팀으로 환산
-    h1_attacker = np.where(
-        same, attacker, [other(a, p) for a, p in zip(attacker, dec["teams"], strict=True)]
-    )
+    h1_attacker = np.where(same, attacker, [other(a, p) for a, p in zip(attacker, dec["teams"], strict=True)])
     votes = pd.Series(h1_attacker, index=pd.MultiIndex.from_frame(dec[MAP_KEY])).groupby(level=MAP_KEY)
     uniq = votes.nunique()
     first = votes.first()

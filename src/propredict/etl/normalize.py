@@ -3,6 +3,7 @@
 원본 파일들은 컬럼 스키마는 연도별로 같지만 '값'의 표기가 다른 곳이 있다(reports/data_audit.md).
 정규화 규칙을 코드 곳곳에 흩지 않고 여기 모아 두면, 새 불일치를 발견했을 때 한 곳만 고치면 된다.
 """
+
 from __future__ import annotations
 
 import pandas as pd
