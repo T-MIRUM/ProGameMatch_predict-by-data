@@ -23,7 +23,9 @@ def test_parse_money_rejects_unknown_format():
 
 
 def test_tournament_alias_maps_2025_eco_names_and_leaves_others():
-    s = pd.Series(["Champions Tour 2025: Masters Bangkok", "Champions Tour 2025: EMEA Kickoff", "Valorant Masters Toronto 2025"])
+    s = pd.Series(
+        ["Champions Tour 2025: Masters Bangkok", "Champions Tour 2025: EMEA Kickoff", "Valorant Masters Toronto 2025"]
+    )
     assert normalize_tournament(s).tolist() == [
         "Valorant Masters Bangkok 2025",
         "VCT 2025: EMEA Kickoff",
