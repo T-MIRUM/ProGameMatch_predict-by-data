@@ -81,3 +81,13 @@ def test_2025_eco_tournament_alias_is_joined():
     eco["Tournament"] = "Champions Tour 2025: EMEA Kickoff"
     res = transform_season(season(scores=sc, ids=ids, wl=wl, eco=eco, year=2025))
     assert res.rounds.loc[0, "team_a_buy_type"] == "Eco: 0-5k"
+
+
+def test_integer_columns_stay_integer_after_joins():
+    # 결측이 섞이면 pandas가 float로 바꿔 COPY가 "52936.0"을 INTEGER로 못 넣는다 (실데이터 적재 중 발견)
+    ids = f.ids(maps=("Bind",))  # Ascent의 Game ID가 없어 source_game_id 결측이 생긴다
+    res = transform_season(season(ids=ids, eco=f.eco(ECO_R1)))
+    assert str(res.map_games["source_game_id"].dtype) == "Int64"
+    assert str(res.matches["source_match_id"].dtype) == "Int64"
+    for col in ("round_number", "team_a_loadout", "team_b_credits"):
+        assert str(res.rounds[col].dtype) == "Int64"
