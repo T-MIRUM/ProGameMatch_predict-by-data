@@ -16,7 +16,7 @@
 |---|---|---|
 | 0 | 데이터 감사 → [`reports/data_audit.md`](reports/data_audit.md) | ✅ |
 | 1 | 프로젝트 골격 (Docker Compose, DB 마이그레이션, CI) | ✅ |
-| 2 | ETL (CSV → PostgreSQL) | ⏳ |
+| 2 | ETL (CSV → PostgreSQL) → [`reports/etl_summary.md`](reports/etl_summary.md) | ✅ |
 | 3 | 모델 (피처 · 학습 · 보정 · 누수 방지 테스트) | ⏳ |
 | 4 | API | ⏳ |
 | 5 | 프론트엔드 (시뮬레이터 · 이코노미 매트릭스 · 경기 리플레이 · 모델 성능) | ⏳ |
@@ -65,7 +65,17 @@ docker compose up --build
 - API 문서(OpenAPI): http://localhost:8000/docs
 - DB 스키마는 API 컨테이너가 시작할 때 `alembic upgrade head`로 자동 적용된다.
 
-### 3. 로컬 개발
+### 3. 데이터 적재 (ETL)
+
+```bash
+docker compose up -d db              # DB만 띄우기
+uv run alembic upgrade head          # 스키마 적용
+uv run python -m propredict.etl      # 전 시즌 적재 (약 2분). --seasons 2025 2026 으로 일부만 가능
+```
+몇 번을 다시 실행해도 결과는 같다(멱등). 두 번째 실행부터는 모든 테이블이 `+0 ~0 -0`으로 표시된다.
+적재 결과는 matches 12,652 · map_games 27,336 · rounds 555,999다.
+
+### 4. 로컬 개발
 
 ```bash
 uv sync                          # 의존성 설치 (.venv)
@@ -81,7 +91,7 @@ cd web && npm ci && npm run dev  # 웹 개발 서버
 ## 디렉터리 구조
 
 ```
-├── src/propredict/      # 단일 Python 패키지: config, db, models(ORM), api/ (ETL·ML은 Phase 2–3에서 추가)
+├── src/propredict/      # 단일 Python 패키지: config, db, models(ORM), etl/, api/ (ML은 Phase 3에서 추가)
 ├── migrations/          # Alembic 마이그레이션
 ├── tests/
 ├── scripts/             # download_data.sh, audit_data.py
@@ -98,7 +108,7 @@ cd web && npm ci && npm run dev  # 웹 개발 서버
 자세한 수치와 근거는 [`reports/data_audit.md`](reports/data_audit.md)에 있다.
 
 - **라운드 진행 중 실시간 승률은 만들 수 없다.** `rounds_kills.csv`는 멀티킬·클러치만 기록하고 타임스탬프가 없다. 선수 단위 집계로만 쓴다.
-- **공격/수비 진영은 원본에 직접 없다.** `maps_scores`의 Attacker/Defender 컬럼은 실제로 전·후반 점수다. 진영은 라운드 승리 방식으로 역산하며, 하프의 88–95%에서 확정된다. 나머지는 NULL이다.
+- **공격/수비 진영은 원본에 직접 없다.** `maps_scores`의 Attacker/Defender 컬럼은 실제로 전·후반 점수다. 진영은 라운드 승리 방식과 하프·연장 교대 규칙으로 역산하며, 라운드의 99.27%에서 확정된다. 나머지는 NULL이다.
 - **날짜가 없다.** 시즌(폴더) 단위 순서만 확실하다.
 - **이코노미 데이터가 불완전하다.** `eco_rounds`는 맵의 46–100%만 담고 있고, 2026년은 `Loadout Value`가 전부 결측이다.
 - **밴픽 커버리지가 낮다.** 2021년 12%, 2022년 33%다.
