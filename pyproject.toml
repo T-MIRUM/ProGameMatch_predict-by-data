@@ -38,6 +38,8 @@ packages = ["src/propredict"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# 테스트끼리 공용 팩토리(tests/etl/factories.py)를 import할 수 있게 루트를 경로에 넣는다
+pythonpath = ["."]
 markers = ["db: PostgreSQL이 필요한 통합 테스트 (DATABASE_URL 필요)"]
 
 [tool.ruff]
