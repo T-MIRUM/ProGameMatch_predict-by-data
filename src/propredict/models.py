@@ -58,9 +58,9 @@ class Match(Base):
     source_match_id: Mapped[int | None] = mapped_column(Integer, unique=True)
     season: Mapped[int] = mapped_column(SmallInteger)  # 폴더명 vct_YYYY에서 파싱
     tournament: Mapped[str] = mapped_column(Text)
-    stage: Mapped[str | None] = mapped_column(Text)
-    match_type: Mapped[str | None] = mapped_column(Text)
-    match_name: Mapped[str | None] = mapped_column(Text)
+    stage: Mapped[str] = mapped_column(Text)
+    match_type: Mapped[str] = mapped_column(Text)
+    match_name: Mapped[str] = mapped_column(Text)
     team_a: Mapped[str] = mapped_column(Text)
     team_b: Mapped[str] = mapped_column(Text)
     score_a: Mapped[int | None] = mapped_column(SmallInteger)  # 세트(맵) 스코어
@@ -70,6 +70,8 @@ class Match(Base):
 
     __table_args__ = (
         # 원본의 복합키. ETL 재실행 시 upsert 기준이 되어 멱등성을 보장한다.
+        # 키 컬럼은 모두 NOT NULL이다(0002): UNIQUE는 NULL끼리를 서로 다르게 보므로 NULL이 섞이면
+        # ON CONFLICT가 발동하지 않아 재실행마다 중복 행이 생긴다.
         UniqueConstraint("season", "tournament", "stage", "match_type", "match_name", name="uq_matches_natural_key"),
         Index("idx_matches_season", "season"),
     )
