@@ -5,6 +5,7 @@
 - LookupTableBaseline: 구매유형 조합(4×4)별 과거 승률. 명세 §5.6의 표 그 자체이며,
   모델이 이 표를 못 이기면 피처 설계를 다시 해야 한다.
 """
+
 from __future__ import annotations
 
 import numpy as np

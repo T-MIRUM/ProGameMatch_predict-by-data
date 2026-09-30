@@ -7,6 +7,7 @@
 - valid(2024)는 경기 단위로 반으로 나눠 한쪽은 조기 종료, 다른 쪽은 확률 보정에 쓴다.
   같은 데이터로 둘 다 하면 보정기가 조기 종료에 맞춰진 예측을 다시 학습해 과적합된다.
 """
+
 from __future__ import annotations
 
 import numpy as np

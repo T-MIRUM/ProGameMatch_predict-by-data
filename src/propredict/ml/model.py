@@ -3,6 +3,7 @@
 한 객체로 묶는 이유: API가 '학습 때와 똑같은' 범주 목록·보정기를 쓰도록 강제하기 위해서다.
 범주 순서가 학습 때와 다르면 LightGBM은 조용히 엉뚱한 분기를 탄다.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
