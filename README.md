@@ -17,7 +17,7 @@
 | 0 | 데이터 감사 → [`reports/data_audit.md`](reports/data_audit.md) | ✅ |
 | 1 | 프로젝트 골격 (Docker Compose, DB 마이그레이션, CI) | ✅ |
 | 2 | ETL (CSV → PostgreSQL) → [`reports/etl_summary.md`](reports/etl_summary.md) | ✅ |
-| 3 | 모델 (피처 · 학습 · 보정 · 누수 방지 테스트) | ⏳ |
+| 3 | 모델 (피처 · 학습 · 보정 · 누수 방지 테스트) → [`reports/model_comparison.md`](reports/model_comparison.md) | ✅ |
 | 4 | API | ⏳ |
 | 5 | 프론트엔드 (시뮬레이터 · 이코노미 매트릭스 · 경기 리플레이 · 모델 성능) | ⏳ |
 | 6 | 마무리 (아키텍처 다이어그램 · 결과 정리) | ⏳ |
@@ -75,7 +75,22 @@ uv run python -m propredict.etl      # 전 시즌 적재 (약 2분). --seasons 2
 몇 번을 다시 실행해도 결과는 같다(멱등). 두 번째 실행부터는 모든 테이블이 `+0 ~0 -0`으로 표시된다.
 적재 결과는 matches 12,652 · map_games 27,336 · rounds 555,999다.
 
-### 4. 로컬 개발
+### 4. 모델 학습 (선택)
+
+학습된 모델(`artifacts/model.joblib`)이 저장소에 포함돼 있으므로 이 단계 없이도 API가 동작한다. 다시 학습하려면:
+
+```bash
+uv run python -m propredict.ml.train   # 약 1분. artifacts/와 reports/model_comparison.md를 갱신
+```
+
+| 테스트 시즌 | 항상 0.5 | 구매유형 룩업표 | LightGBM + 보정 | 룩업 대비 (95% CI) |
+|---|---:|---:|---:|---|
+| 2025 | 0.2500 | 0.2223 | **0.2201** | −0.0022 [−0.0032, −0.0011] |
+| 2026 (장비가치 결측) | 0.2500 | 0.2222 | **0.2210** | −0.0012 [−0.0021, −0.0003] |
+
+지표는 Brier score(낮을수록 좋음)다. 신뢰구간은 경기 단위 부트스트랩으로 구했다. 2025 ECE는 0.007이다.
+
+### 5. 로컬 개발
 
 ```bash
 uv sync                          # 의존성 설치 (.venv)
@@ -91,7 +106,7 @@ cd web && npm ci && npm run dev  # 웹 개발 서버
 ## 디렉터리 구조
 
 ```
-├── src/propredict/      # 단일 Python 패키지: config, db, models(ORM), etl/, api/ (ML은 Phase 3에서 추가)
+├── src/propredict/      # 단일 Python 패키지: config, db, models(ORM), etl/, ml/, api/
 ├── migrations/          # Alembic 마이그레이션
 ├── tests/
 ├── scripts/             # download_data.sh, audit_data.py
