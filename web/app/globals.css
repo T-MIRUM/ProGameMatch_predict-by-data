@@ -1,18 +1,31 @@
 @import "tailwindcss";
 
 /*
- * 명세: 다크 테마 기본. 색은 여기 토큰으로만 정의하고 컴포넌트는 토큰 이름(bg-surface 등)만 쓴다.
- * 나중에 색을 바꿀 때 한 곳만 고치면 되고, 차트(Recharts)도 같은 CSS 변수를 참조할 수 있다.
+ * 디자인 토큰 — 명세: 다크 테마 기본.
+ * 색은 여기서만 정의하고 컴포넌트·차트는 토큰 이름만 쓴다(차트는 var(--color-*)로 같은 값을 참조).
+ * 값은 검증된 데이터 시각화 팔레트의 다크 단계에서 가져왔다:
+ * - Team A 파랑 / Team B 주황: 다크 배경에서 명도 대역·채도·대비 3:1을 통과하고,
+ *   색약 시뮬레이션 색차 ΔE 26.8(기준 8 이상)로 적록·청황 색약에서도 구분된다 (validate_palette.js로 확인).
+ * - 발산(diverging) 척도: 승률 50%를 '중립 회색', 높음=파랑, 낮음=빨강. 중간에 색상이 있으면 50%가 의미 있어 보인다.
+ * - 상태색(critical)은 오류 표시에만 쓰고 데이터 계열에는 쓰지 않는다.
  */
 @theme {
-  --color-bg: #0e1116;
-  --color-surface: #161b22;
-  --color-border: #2a313c;
-  --color-text: #e6edf3;
-  --color-muted: #8b949e;
-  --color-team-a: #4cc3a5;
-  --color-team-b: #f0616d;
-  --color-accent: #7aa2f7;
+  --color-bg: #0d0d0d;
+  --color-surface: #1a1a19;
+  --color-raised: #232322;
+  --color-border: #2c2c2a;
+  --color-axis: #383835;
+  --color-text: #ffffff;
+  --color-secondary: #c3c2b7;
+  --color-muted: #898781;
+  --color-team-a: #3987e5;
+  --color-team-b: #d95926;
+  --color-aux: #199e70;
+  --color-div-pos: #3987e5;
+  --color-div-mid: #383835;
+  --color-div-neg: #e66767;
+  --color-critical: #d03b3b;
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 html {
@@ -22,4 +35,18 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* 표의 숫자 열만 자릿수를 맞춘다. 큰 단독 숫자(승률 등)는 기본 비례폭 숫자를 쓴다. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 슬라이더: 브라우저 기본 모양 대신 토큰 색을 쓴다 */
+input[type="range"] {
+  accent-color: var(--color-team-a);
+}
+input[type="range"].team-b {
+  accent-color: var(--color-team-b);
 }
