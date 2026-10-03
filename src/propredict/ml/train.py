@@ -37,6 +37,7 @@ from propredict.ml.features import (
     build_features,
     flip_ab,
     latest_team_strength,
+    team_strength,
 )
 from propredict.ml.model import RoundWinModel, fit_categories, to_model_frame
 from propredict.ml.report import write_report
@@ -170,8 +171,17 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     args.out.mkdir(parents=True, exist_ok=True)
+    # 경기 리플레이 API가 학습 때와 '같은' 팀 강도를 쓰도록 경기별 값을 함께 저장한다.
+    # 키는 DB 대리키(match_id)가 아니라 원본 Match ID: DB를 새로 만들어도 바뀌지 않는다.
+    src_ids = rounds.drop_duplicates("match_id").set_index("match_id")["source_match_id"]
+    ms = team_strength(rounds).assign(source_match_id=lambda d: d["match_id"].map(src_ids)).dropna()
+    match_strength = {
+        int(r.source_match_id): (round(float(r.team_a_strength), 6), round(float(r.team_b_strength), 6))
+        for r in ms.itertuples()
+    }
     joblib.dump(
         {"model": model, "lookup_table": lookup.table, "team_strength": latest_team_strength(rounds),
+         "match_strength": match_strength,
          "features": FEATURES, "meta": meta},
         args.out / "model.joblib", compress=3,
     )  # fmt: skip

@@ -48,3 +48,8 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI는 의존성 주입을 위해 Depends()/Query()를 기본값 자리에 쓰는 것이 관용구다(매 요청 새로 평가됨).
+# B008 규칙 자체는 유지하고 이 호출들만 예외로 둔다.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.params.Depends", "fastapi.params.Query"]
