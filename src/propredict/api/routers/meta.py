@@ -14,12 +14,13 @@ router = APIRouter(prefix="/api", tags=["meta"])
 
 @router.get("/maps", response_model=MapsResponse)
 def list_maps(session: Session = Depends(get_session)) -> MapsResponse:
+    # 라운드 테이블(56만 행)을 조인하지 않고 ETL이 채운 map_games.total_rounds를 합산한다 (0.55초 → 수 ms)
     rows = (
         session.execute(
             text("""
-        SELECT g.map_name AS name, count(DISTINCT g.map_game_id) AS map_games,
-               count(r.round_id) AS rounds, max(m.season) AS last_season
-        FROM map_games g JOIN matches m USING (match_id) LEFT JOIN rounds r USING (map_game_id)
+        SELECT g.map_name AS name, count(*) AS map_games, coalesce(sum(g.total_rounds), 0) AS rounds,
+               max(m.season) AS last_season
+        FROM map_games g JOIN matches m USING (match_id)
         GROUP BY g.map_name ORDER BY map_games DESC""")
         )
         .mappings()
