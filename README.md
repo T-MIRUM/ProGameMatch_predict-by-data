@@ -19,7 +19,7 @@
 | 2 | ETL (CSV → PostgreSQL) → [`reports/etl_summary.md`](reports/etl_summary.md) | ✅ |
 | 3 | 모델 (피처 · 학습 · 보정 · 누수 방지 테스트) → [`reports/model_comparison.md`](reports/model_comparison.md) | ✅ |
 | 4 | API (FastAPI · OpenAPI 문서 · 테스트) | ✅ |
-| 5 | 프론트엔드 (시뮬레이터 · 이코노미 매트릭스 · 경기 리플레이 · 모델 성능) | ⏳ |
+| 5 | 프론트엔드 (시뮬레이터 · 이코노미 매트릭스 · 경기 리플레이 · 모델 성능) | ✅ |
 | 6 | 마무리 (아키텍처 다이어그램 · 결과 정리) | ⏳ |
 
 ## 아키텍처 (초안)
@@ -61,7 +61,7 @@ CLI 없이 [Kaggle 데이터셋 페이지](https://www.kaggle.com/datasets/ryanl
 cp .env.example .env            # 선택: 기본값으로도 동작
 docker compose up --build
 ```
-- 웹: http://localhost:3000 — API·DB 연결 상태가 표시된다
+- 웹: http://localhost:3000 — 화면 4개는 아래 [6. 웹 화면](#6-웹-화면) 참고
 - API 문서(OpenAPI): http://localhost:8000/docs
 - DB 스키마는 API 컨테이너가 시작할 때 `alembic upgrade head`로 자동 적용된다.
 
@@ -115,7 +115,23 @@ curl -X POST localhost:8000/api/predict -H 'content-type: application/json' -d '
 # → {"win_probability_a": 0.8792, "win_probability_b": 0.1208, "baseline_probability_a": 0.8997, "top_factors": [...]}
 ```
 
-### 6. 로컬 개발
+### 6. 웹 화면
+
+`docker compose up` 후 http://localhost:3000. 모든 화면은 다크 테마이며, 모든 차트에 마우스 툴팁과 표 보기가 있다.
+
+| 화면 | 경로 | 보여 주는 것 |
+|---|---|---|
+| 승률 시뮬레이터 | `/` | 맵·스코어·진영·양 팀 이코노미를 바꾸면 300ms 디바운스 후 승률·룩업표 비교·SHAP 상위 요인이 갱신된다 (입력 → 화면 갱신 중앙값 335ms, 최대 347ms) |
+| 이코노미 매트릭스 | `/economy` | 구매유형 4×4 승률 히트맵(맵·시즌 필터, 표본 30라운드 미만 칸 표시), 맵별 공격 승률의 50% 대비 편차 |
+| 경기 리플레이 | `/replay` | 경기 → 맵별 라운드 승률 곡선(모델 vs 룩업표), 실제 승자 점, 이변(이긴 팀 예측 < 30%) 강조, 라운드 표 |
+| 모델 성능 | `/model` | 2025/2026 테스트 탭: Brier·ECE·AUC 타일, 룩업 대비 Brier 차이의 95% 신뢰구간, 신뢰도 곡선(보정 전·후), SHAP 중요도 |
+
+| | |
+|---|---|
+| ![승률 시뮬레이터](docs/screenshots/simulator.png) | ![이코노미 매트릭스](docs/screenshots/economy.png) |
+| ![경기 리플레이](docs/screenshots/replay.png) | ![모델 성능](docs/screenshots/model.png) |
+
+### 7. 로컬 개발
 
 ```bash
 uv sync                          # 의존성 설치 (.venv)
@@ -126,7 +142,8 @@ uv run ruff check . && uv run ruff format --check .
 uv run uvicorn propredict.api.main:app --reload   # API 개발 서버 (DB는 docker compose up -d db)
 uv run python scripts/audit_data.py   # 데이터 감사 재실행 → reports/data_audit_stats.json
 
-cd web && npm ci && npm run dev  # 웹 개발 서버
+cd web && npm ci && npm run dev  # 웹 개발 서버 (API 주소: NEXT_PUBLIC_API_BASE_URL, 기본 http://localhost:8000)
+cd web && npm run typecheck      # 타입 검사
 ```
 
 ## 디렉터리 구조
