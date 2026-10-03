@@ -1,4 +1,5 @@
 """GET /api/maps, GET /api/teams."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -13,11 +14,17 @@ router = APIRouter(prefix="/api", tags=["meta"])
 
 @router.get("/maps", response_model=MapsResponse)
 def list_maps(session: Session = Depends(get_session)) -> MapsResponse:
-    rows = session.execute(text("""
+    rows = (
+        session.execute(
+            text("""
         SELECT g.map_name AS name, count(DISTINCT g.map_game_id) AS map_games,
                count(r.round_id) AS rounds, max(m.season) AS last_season
         FROM map_games g JOIN matches m USING (match_id) LEFT JOIN rounds r USING (map_game_id)
-        GROUP BY g.map_name ORDER BY map_games DESC""")).mappings().all()
+        GROUP BY g.map_name ORDER BY map_games DESC""")
+        )
+        .mappings()
+        .all()
+    )
     seasons = session.execute(text("SELECT DISTINCT season FROM matches ORDER BY season")).scalars().all()
     return MapsResponse(maps=[MapInfo(**r) for r in rows], seasons=list(seasons))
 

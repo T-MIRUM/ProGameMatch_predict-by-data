@@ -1,4 +1,5 @@
 """GET /api/stats/buy-matrix, GET /api/stats/map-balance — DB 집계 통계."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
@@ -46,7 +47,9 @@ def buy_matrix(map: str | None = None, season: int | None = None,
 
 @router.get("/map-balance", response_model=list[MapBalance])
 def map_balance(season: int | None = None, session: Session = Depends(get_session)) -> list[MapBalance]:
-    rows = session.execute(text("""
+    rows = (
+        session.execute(
+            text("""
         SELECT g.map_name,
                count(DISTINCT g.map_game_id) AS map_games,
                count(*) AS rounds,
@@ -56,7 +59,12 @@ def map_balance(season: int | None = None, session: Session = Depends(get_sessio
                count(*)::float / count(DISTINCT g.map_game_id) AS avg_rounds_per_map
         FROM rounds r JOIN map_games g USING (map_game_id) JOIN matches m USING (match_id)
         WHERE CAST(:season AS SMALLINT) IS NULL OR m.season = :season
-        GROUP BY g.map_name ORDER BY map_games DESC"""), {"season": season}).mappings().all()
+        GROUP BY g.map_name ORDER BY map_games DESC"""),
+            {"season": season},
+        )
+        .mappings()
+        .all()
+    )
     return [MapBalance(**{**r, "attacker_win_rate": None if r["attacker_win_rate"] is None
                           else round(float(r["attacker_win_rate"]), 4),
                           "avg_rounds_per_map": round(float(r["avg_rounds_per_map"]), 2)}) for r in rows]  # fmt: skip

@@ -1,4 +1,5 @@
 """FastAPI 의존성. 테스트에서 dependency_overrides로 갈아끼울 수 있게 함수로 분리한다."""
+
 from __future__ import annotations
 
 from fastapi import HTTPException, Request

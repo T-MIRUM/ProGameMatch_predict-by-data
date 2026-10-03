@@ -3,6 +3,7 @@
 모든 응답을 명시적 모델로 두는 이유: OpenAPI 문서가 자동으로 정확해지고, 프론트엔드 타입과
 백엔드 응답이 어긋나면 서버에서 먼저 검증 오류가 난다(조용히 깨진 화면 대신).
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -53,20 +54,33 @@ class PredictRequest(BaseModel):
     score_b: int = Field(ge=0, le=59)
     team_a_buy_type: BuyType
     team_b_buy_type: BuyType
-    team_a_loadout: int | None = Field(None, ge=0, le=MAX_CREDITS, description="장비 가치. 모르면 생략(2026 데이터처럼)")
+    team_a_loadout: int | None = Field(
+        None, ge=0, le=MAX_CREDITS, description="장비 가치. 모르면 생략(2026 데이터처럼)"
+    )
     team_b_loadout: int | None = Field(None, ge=0, le=MAX_CREDITS)
     team_a_credits: int | None = Field(None, ge=0, le=MAX_CREDITS)
     team_b_credits: int | None = Field(None, ge=0, le=MAX_CREDITS)
-    team_a_side: Literal["atk", "def"] | None = Field(None, description="Team A 진영 (명세 대비 추가 필드, decisions D3)")
+    team_a_side: Literal["atk", "def"] | None = Field(
+        None, description="Team A 진영 (명세 대비 추가 필드, decisions D3)"
+    )
 
     model_config = {
         "json_schema_extra": {
-            "examples": [{
-                "map_name": "Ascent", "round_number": 14, "score_a": 7, "score_b": 6,
-                "team_a_buy_type": "Full buy: 20k+", "team_b_buy_type": "Eco: 0-5k",
-                "team_a_loadout": 24500, "team_b_loadout": 3900, "team_a_credits": 2100, "team_b_credits": 400,
-                "team_a_side": "atk",
-            }]  # fmt: skip
+            "examples": [
+                {
+                    "map_name": "Ascent",
+                    "round_number": 14,
+                    "score_a": 7,
+                    "score_b": 6,
+                    "team_a_buy_type": "Full buy: 20k+",
+                    "team_b_buy_type": "Eco: 0-5k",
+                    "team_a_loadout": 24500,
+                    "team_b_loadout": 3900,
+                    "team_a_credits": 2100,
+                    "team_b_credits": 400,
+                    "team_a_side": "atk",
+                }
+            ]  # fmt: skip
         }
     }
 

@@ -1,4 +1,5 @@
 """POST /api/predict — 라운드 시작 상태 → Team A 승리 확률."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException

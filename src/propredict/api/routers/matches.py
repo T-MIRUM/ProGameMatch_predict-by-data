@@ -2,6 +2,7 @@
 
 목록 엔드포인트는 명세 §6에 없지만, 화면 3 '실제 경기 하나를 골라'를 구현하려면 고를 목록이 필요해서 추가했다.
 """
+
 from __future__ import annotations
 
 import math
@@ -33,13 +34,23 @@ def list_matches(
     limit: int = Query(30, ge=1, le=200),
     session: Session = Depends(get_session),
 ) -> list[MatchSummary]:
-    rows = session.execute(text(_SUMMARY_SQL + """
+    rows = (
+        session.execute(
+            text(
+                _SUMMARY_SQL
+                + """
         WHERE (CAST(:season AS SMALLINT) IS NULL OR m.season = :season)
           AND (CAST(:team AS TEXT) IS NULL OR m.team_a ILIKE '%' || :team || '%' OR m.team_b ILIKE '%' || :team || '%')
         GROUP BY m.match_id
         -- 리플레이에 의미 있는(이코노미가 있는) 최신 경기를 먼저 보여 준다
         ORDER BY (count(r.team_a_buy_type) > 0) DESC, m.season DESC, m.source_match_id DESC NULLS LAST
-        LIMIT :limit"""), {"season": season, "team": team, "limit": limit}).mappings().all()
+        LIMIT :limit"""
+            ),
+            {"season": season, "team": team, "limit": limit},
+        )
+        .mappings()
+        .all()
+    )
     return [MatchSummary(**r) for r in rows]
 
 
@@ -55,13 +66,17 @@ def match_rounds(match_id: int, session: Session = Depends(get_session),
                               {"id": match_id}).mappings().first()  # fmt: skip
     if summary is None:
         raise HTTPException(status_code=404, detail=f"경기 {match_id}를 찾을 수 없습니다")
-    rounds = pd.read_sql(text("""
+    rounds = pd.read_sql(
+        text("""
         SELECT m.match_id, m.season, m.source_match_id, m.team_a, m.team_b,
                g.map_game_id, g.map_name, g.map_order, g.score_a AS map_score_a, g.score_b AS map_score_b,
                r.round_number, r.team_a_side, r.team_a_loadout, r.team_b_loadout, r.team_a_credits, r.team_b_credits,
                r.team_a_buy_type, r.team_b_buy_type, r.winner
         FROM rounds r JOIN map_games g USING (map_game_id) JOIN matches m USING (match_id)
-        WHERE m.match_id = :id"""), session.connection(), params={"id": match_id})
+        WHERE m.match_id = :id"""),
+        session.connection(),
+        params={"id": match_id},
+    )
     num = ["team_a_loadout", "team_b_loadout", "team_a_credits", "team_b_credits", "source_match_id", "map_order"]
     rounds[num] = rounds[num].astype("Float64").astype(float)
     rounds = rounds.sort_values(CHRONO_ORDER, kind="stable", na_position="last").reset_index(drop=True)
