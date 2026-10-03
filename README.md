@@ -18,7 +18,7 @@
 | 1 | 프로젝트 골격 (Docker Compose, DB 마이그레이션, CI) | ✅ |
 | 2 | ETL (CSV → PostgreSQL) → [`reports/etl_summary.md`](reports/etl_summary.md) | ✅ |
 | 3 | 모델 (피처 · 학습 · 보정 · 누수 방지 테스트) → [`reports/model_comparison.md`](reports/model_comparison.md) | ✅ |
-| 4 | API | ⏳ |
+| 4 | API (FastAPI · OpenAPI 문서 · 테스트) | ✅ |
 | 5 | 프론트엔드 (시뮬레이터 · 이코노미 매트릭스 · 경기 리플레이 · 모델 성능) | ⏳ |
 | 6 | 마무리 (아키텍처 다이어그램 · 결과 정리) | ⏳ |
 
@@ -90,7 +90,32 @@ uv run python -m propredict.ml.train   # 약 1분. artifacts/와 reports/model_c
 
 지표는 Brier score(낮을수록 좋음)다. 신뢰구간은 경기 단위 부트스트랩으로 구했다. 2025 ECE는 0.007이다.
 
-### 5. 로컬 개발
+### 5. API
+
+`docker compose up` 후 http://localhost:8000/docs 에서 모든 엔드포인트를 직접 호출해 볼 수 있다(OpenAPI 자동 문서).
+
+| 메서드 | 경로 | 설명 | 실데이터 응답 시간 |
+|---|---|---|---:|
+| GET | `/api/health` | API·DB·모델 상태 | – |
+| GET | `/api/maps` | 맵 목록 + 시즌 목록 | 16ms |
+| GET | `/api/teams?season=&q=` | 팀 검색 + 팀 강도 | 19ms |
+| POST | `/api/predict` | 라운드 승률 + 룩업표 값 + SHAP 상위 요인 | 33ms |
+| GET | `/api/stats/buy-matrix?map=&season=` | 구매유형 4×4 승률 (양 팀 관점 대칭) | 130ms |
+| GET | `/api/stats/map-balance?season=` | 맵별 공격 승률 등 | 0.6s |
+| GET | `/api/matches?season=&team=` | 리플레이할 경기 목록 *(명세 외 추가)* | 10ms |
+| GET | `/api/matches/{id}/rounds` | 경기의 라운드별 예측 확률·실제 승패·업셋 | 66ms |
+| GET | `/api/model/metrics` | Brier·LogLoss·AUC·ECE, calibration curve, SHAP 중요도 | 3ms |
+
+```bash
+curl -X POST localhost:8000/api/predict -H 'content-type: application/json' -d '{
+  "map_name": "Ascent", "round_number": 14, "score_a": 7, "score_b": 6,
+  "team_a_buy_type": "Full buy: 20k+", "team_b_buy_type": "Eco: 0-5k",
+  "team_a_loadout": 24500, "team_b_loadout": 3900, "team_a_credits": 2100, "team_b_credits": 400,
+  "team_a_side": "atk"}'
+# → {"win_probability_a": 0.8792, "win_probability_b": 0.1208, "baseline_probability_a": 0.8997, "top_factors": [...]}
+```
+
+### 6. 로컬 개발
 
 ```bash
 uv sync                          # 의존성 설치 (.venv)
@@ -98,6 +123,7 @@ docker compose up -d db          # DB만 띄우기
 uv run alembic upgrade head      # 스키마 적용
 uv run pytest                    # 테스트
 uv run ruff check . && uv run ruff format --check .
+uv run uvicorn propredict.api.main:app --reload   # API 개발 서버 (DB는 docker compose up -d db)
 uv run python scripts/audit_data.py   # 데이터 감사 재실행 → reports/data_audit_stats.json
 
 cd web && npm ci && npm run dev  # 웹 개발 서버
