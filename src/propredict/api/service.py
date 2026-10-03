@@ -59,7 +59,8 @@ class ModelService:
 
     # ------------------------------------------------------------ 룩업표 베이스라인
     def baseline(self, buy_a: str | None, buy_b: str | None) -> float | None:
-        if buy_a is None or buy_b is None:
+        # DB에서 읽은 라운드는 결측이 None이 아니라 NaN으로 온다(pandas). 둘 다 '정보 없음'으로 처리한다.
+        if pd.isna(buy_a) or pd.isna(buy_b):
             return None
         key = (float(BUY_ORDER[buy_a]), float(BUY_ORDER[buy_b]))
         return round(float(self.lookup["win_rate"].get(key, 0.5)), 4)
