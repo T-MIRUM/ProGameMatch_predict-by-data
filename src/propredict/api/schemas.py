@@ -211,6 +211,16 @@ class FeatureImportance(BaseModel):
     mean_abs_shap: float
 
 
+class CalibrationCandidate(BaseModel):
+    """보정 방법 후보의 교차검증 결과 (valid 보정용 절반, 경기 단위 5-fold)."""
+
+    method: str
+    cv_brier: float
+    cv_log_loss: float
+    cv_ece: float
+    selected: bool
+
+
 class ModelMetricsResponse(BaseModel):
     trained_at: str
     best_iteration: int
@@ -221,3 +231,5 @@ class ModelMetricsResponse(BaseModel):
     calibration: dict[str, CalibrationCurves]
     significance: dict[str, dict[str, Significance]]
     feature_importance: list[FeatureImportance]
+    calibration_method: str
+    calibration_cv: list[CalibrationCandidate]
