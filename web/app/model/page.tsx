@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import CalibrationChart, { CalibrationLegend, CalibrationTable } from "@/components/CalibrationChart";
+import CalibrationChart, { CalibrationLegend, CalibrationMethodTable, CalibrationTable } from "@/components/CalibrationChart";
 import Card, { ErrorNote } from "@/components/Card";
 import ImportanceBars from "@/components/ImportanceBars";
 import SignificancePlot from "@/components/SignificancePlot";
@@ -153,6 +153,14 @@ export default function ModelPage() {
           ) : (
             <p className="text-sm text-muted">이 시즌의 보정 데이터가 없습니다.</p>
           )}
+          <div className="mt-5 border-t border-border pt-4">
+            <div className="mb-1 text-sm font-semibold">보정 방법은 어떻게 골랐나</div>
+            <p className="mb-3 text-xs text-muted">
+              2024 시즌 보정용 절반 안에서 경기 단위 5-fold 교차검증으로 비교했습니다(테스트 시즌은 보지 않음). Isotonic은
+              계단 함수라 입력을 바꿔도 확률이 그대로이거나 0%·100%를 내는 문제가 있어 제외됐습니다. Brier 차이가 0.00001 이하면 파라미터가 적은 방법을 고릅니다.
+            </p>
+            <CalibrationMethodTable cv={m.calibration_cv ?? []} />
+          </div>
         </Card>
 
         <Card
