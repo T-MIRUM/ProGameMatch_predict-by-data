@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -27,6 +26,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from propredict.config import get_settings
 from propredict.db import get_engine
 from propredict.ml.baselines import ConstantBaseline, LookupTableBaseline
+from propredict.ml.calibration import IsotonicCalibrator, select_calibrator
 from propredict.ml.dataset import load_rounds
 from propredict.ml.evaluate import calibration_bins, evaluate, paired_bootstrap_brier_diff
 from propredict.ml.features import (
@@ -123,11 +123,17 @@ def main(argv: list[str] | None = None) -> int:
     model = RoundWinModel(classifier=clf, categories=cats)
     preds["lightgbm"] = {k: model.predict_raw(v[FEATURES]) for k, v in evals.items()}
 
-    # 4) 보정: 조기 종료에 쓰지 않은 나머지 valid 절반으로 isotonic 회귀
-    iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0)
-    iso.fit(preds["lightgbm"]["valid_cal"], valid_cal["y"])
-    model.calibrator = iso
-    preds["lightgbm_calibrated"] = {k: iso.predict(p) for k, p in preds["lightgbm"].items()}
+    # 4) 보정: 조기 종료에 쓰지 않은 나머지 valid 절반으로 학습한다.
+    #    방법(없음·Platt·Beta·isotonic)은 그 절반 안에서 경기 단위 5-fold 교차검증 Brier로 고른다 (D22).
+    raw_cal = preds["lightgbm"]["valid_cal"]
+    calibrator, cal_table = select_calibrator(raw_cal, valid_cal["y"].to_numpy(), valid_cal["match_id"].to_numpy())
+    model.calibrator = calibrator
+    preds["lightgbm_calibrated"] = {k: calibrator.predict(p) for k, p in preds["lightgbm"].items()}
+    # 기각한 isotonic도 같은 데이터로 학습해 테스트 지표를 남긴다: '왜 바꿨는가'를 숫자로 보여 주기 위해서다
+    iso = IsotonicCalibrator().fit(raw_cal, valid_cal["y"].to_numpy())
+    preds["lightgbm_isotonic"] = {k: iso.predict(p) for k, p in preds["lightgbm"].items()}
+    grid = calibrator.predict(np.linspace(0.01, 0.99, 981))
+    print("calibrator:", calibrator.name, cal_table)
 
     # ---- 평가
     metrics = {name: {k: evaluate(evals[k]["y"].to_numpy(), p) for k, p in by_split.items()}
@@ -155,6 +161,7 @@ def main(argv: list[str] | None = None) -> int:
         "rows": {"train_augmented": len(Xtr), "valid_es": len(valid_es), **{k: len(v) for k, v in evals.items()}},
         "splits": {"train": [2021, 2022, 2023], "valid": [2024], "test": [2025, 2026]},
         "loadout_mask_frac": LOADOUT_MASK_FRAC,
+        "calibrator": calibrator.name,
     }
     model.meta = meta
     out = {
@@ -162,6 +169,13 @@ def main(argv: list[str] | None = None) -> int:
         "models": metrics,
         "calibration": calib,
         "significance": significance,
+        "calibration_selection": {
+            "method": calibrator.name,
+            "cv": cal_table,
+            # 원출력 0.01–0.99 구간에서 서로 다른 출력값 개수와 범위: 계단·0/1 출력 문제가 없는지 확인용
+            "distinct_outputs": int(len(np.unique(np.round(grid, 4)))),
+            "output_range": [round(float(grid.min()), 4), round(float(grid.max()), 4)],
+        },
         "feature_importance": [{"feature": f, "mean_abs_shap": round(float(v), 5)} for f, v in importance.items()],
         "logistic_coefficients": logistic_coefficients(logit),
         "lookup_table": [
