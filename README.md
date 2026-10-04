@@ -20,17 +20,62 @@
 | 3 | 모델 (피처 · 학습 · 보정 · 누수 방지 테스트) → [`reports/model_comparison.md`](reports/model_comparison.md) | ✅ |
 | 4 | API (FastAPI · OpenAPI 문서 · 테스트) | ✅ |
 | 5 | 프론트엔드 (시뮬레이터 · 이코노미 매트릭스 · 경기 리플레이 · 모델 성능) | ✅ |
-| 6 | 마무리 (아키텍처 다이어그램 · 결과 정리) | ⏳ |
+| 6 | 마무리 (보정 방법 개선 · 아키텍처 문서 · 결과 정리) → [`docs/architecture.md`](docs/architecture.md) | ✅ |
 
-## 아키텍처 (초안)
+## 결과
 
+![승률 시뮬레이터](docs/screenshots/simulator.png)
+
+학습 2021–2023 · 검증 2024 · **테스트 2025, 2026** (시즌 단위 분할이라 테스트 경기는 학습에 전혀 쓰지 않았다). 지표는 Brier score이고, 낮을수록 좋다.
+
+| 테스트 시즌 | 항상 0.5 | 구매유형 룩업표 | LightGBM + Platt 보정 | 룩업 대비 차이 (95% CI) | ECE |
+|---|---:|---:|---:|---|---:|
+| 2025 | 0.2500 | 0.2223 | **0.2199** | −0.00235 [−0.00341, −0.00134] | 0.95% |
+| 2026 (장비가치 전부 결측) | 0.2500 | 0.2222 | **0.2207** | −0.00147 [−0.00228, −0.00065] | 1.49% |
+
+- **예측력의 대부분은 구매유형에서 나온다.** 항상 0.5 → 룩업표로 Brier가 11% 줄고, 모델이 그 위에 더하는 개선은 약 1%p다(11.1% → 12.0%). 작지만 경기 단위 부트스트랩 신뢰구간이 0을 넘지 않아 우연이 아니다.
+- **확률을 믿을 수 있다.** 10구간 ECE가 1% 안팎이다. 예를 들어 2025년에 모델이 평균 75.8%라고 한 라운드 782개의 실제 승률은 76.7%였다(화면 4의 신뢰도 곡선).
+- **장비가치가 없는 2026년에도 동작한다.** 학습 때 장비가치를 일부러 25% 지워서 구매유형·크레딧만으로 예측하는 경로를 가르쳤다(D14).
+- **더 좋아지려면 새 정보가 필요하다.** 하이퍼파라미터 격자 탐색의 차이는 0.0001 이하였다(D16). 라운드 결과는 에임·전술처럼 이 데이터에 없는 요인에 크게 좌우된다.
+
+### 만들면서 고친 것
+
+웹 시뮬레이터에서 스코어를 바꿔도 승률이 87.9%에서 움직이지 않았다. 원인은 isotonic 보정기였다. isotonic은 계단 함수라 원출력이 조금 바뀌어도 같은 계단에 머물고, 표본이 적은 양 끝에서는 0%·100%를 냈다. 테스트 지표에는 거의 드러나지 않던 문제다.
+
+보정 방법을 감으로 바꾸지 않고, 보정용 데이터 안에서 **경기 단위 5-fold 교차검증**으로 후보 4개(보정 안 함 · Platt · Beta · isotonic)를 비교했다. isotonic은 Brier가 보정하지 않은 것보다도 나빴고(과적합), Platt가 선택됐다. 결과적으로 테스트 Brier도 조금 좋아졌고, 출력은 연속이 됐으며(1.6%–98.5%), 같은 문제를 막는 회귀 테스트를 추가했다(D21, D22).
+
+## 아키텍처
+
+```mermaid
+flowchart TB
+    browser(("브라우저"))
+
+    subgraph compose["docker compose"]
+        direction LR
+        web["Next.js :3000<br/>화면 4개"]
+        api["FastAPI :8000<br/>모델 1회 로드"]
+        db[("PostgreSQL 16<br/>matches · map_games · rounds")]
+    end
+
+    subgraph offline["오프라인 (호스트에서 실행)"]
+        direction LR
+        csv[("data/raw/*.csv<br/>Kaggle VCT 2021–2026")]
+        etl["ETL<br/>python -m propredict.etl"]
+        train["학습<br/>python -m propredict.ml.train"]
+        art[["artifacts/<br/>model.joblib · metrics.json"]]
+    end
+
+    browser -->|"① 페이지 · JS"| web
+    browser -->|"② fetch (CORS)"| api
+    api <-->|"통계 · 리플레이 SQL"| db
+    art -.->|"읽기 전용 마운트"| api
+    csv --> etl
+    etl -->|"COPY → upsert"| db
+    db -->|"라운드 조회"| train
+    train --> art
 ```
-data/raw/*.csv ──(ETL, Phase 2)──▶ PostgreSQL 16 ──(학습, Phase 3)──▶ artifacts/model
-                                        │                                  │ (시작 시 1회 로드)
-                                        └──────────▶ FastAPI (:8000) ◀─────┘
-                                                        ▲
-                                              Next.js (:3000, 브라우저)
-```
+
+ETL 단계, 학습 파이프라인, 예측 요청 흐름, 학습·서빙 공유 코드는 [`docs/architecture.md`](docs/architecture.md)에 다이어그램과 함께 정리했다.
 
 | 영역 | 기술 |
 |---|---|
@@ -47,6 +92,7 @@ data/raw/*.csv ──(ETL, Phase 2)──▶ PostgreSQL 16 ──(학습, Phase 
 - Docker Desktop
 - [uv](https://docs.astral.sh/uv/) (Python 3.11은 uv가 자동으로 받는다)
 - Node.js 22 (웹을 로컬에서 개발할 때만)
+- macOS에서 Docker 없이 API를 실행할 때: `brew install libomp` (LightGBM이 OpenMP 런타임을 필요로 한다. Docker 이미지에는 들어 있다)
 
 ### 1. 데이터 받기
 
@@ -83,12 +129,8 @@ uv run python -m propredict.etl      # 전 시즌 적재 (약 2분). --seasons 2
 uv run python -m propredict.ml.train   # 약 1분. artifacts/와 reports/model_comparison.md를 갱신
 ```
 
-| 테스트 시즌 | 항상 0.5 | 구매유형 룩업표 | LightGBM + 보정 | 룩업 대비 (95% CI) |
-|---|---:|---:|---:|---|
-| 2025 | 0.2500 | 0.2223 | **0.2201** | −0.0022 [−0.0032, −0.0011] |
-| 2026 (장비가치 결측) | 0.2500 | 0.2222 | **0.2210** | −0.0012 [−0.0021, −0.0003] |
+결과는 위 [결과](#결과) 표와 같다. 보정 방법 선택 과정과 시즌별 상세 표는 [`reports/model_comparison.md`](reports/model_comparison.md)에 자동 생성된다.
 
-지표는 Brier score(낮을수록 좋음)다. 신뢰구간은 경기 단위 부트스트랩으로 구했다. 2025 ECE는 0.007이다.
 
 ### 5. API
 
@@ -112,7 +154,7 @@ curl -X POST localhost:8000/api/predict -H 'content-type: application/json' -d '
   "team_a_buy_type": "Full buy: 20k+", "team_b_buy_type": "Eco: 0-5k",
   "team_a_loadout": 24500, "team_b_loadout": 3900, "team_a_credits": 2100, "team_b_credits": 400,
   "team_a_side": "atk"}'
-# → {"win_probability_a": 0.8792, "win_probability_b": 0.1208, "baseline_probability_a": 0.8997, "top_factors": [...]}
+# → {"win_probability_a": 0.8607, "win_probability_b": 0.1393, "baseline_probability_a": 0.8997, "top_factors": [...]}
 ```
 
 ### 6. 웹 화면
@@ -158,7 +200,8 @@ cd web && npm run typecheck      # 타입 검사
 ├── data/raw/            # 원본 CSV (git 제외)
 ├── artifacts/           # 학습된 모델 (API에 읽기 전용 마운트)
 ├── reports/             # 데이터 감사 · 모델 비교 리포트
-└── docs/decisions.md    # 설계 결정 기록
+├── docs/architecture.md # 아키텍처 다이어그램
+└── docs/decisions.md    # 설계 결정 기록 (D1–D22)
 ```
 
 ## 데이터 한계 (요약)
@@ -172,6 +215,12 @@ cd web && npm run typecheck      # 타입 검사
 - **밴픽 커버리지가 낮다.** 2021년 12%, 2022년 33%다.
 - **리그 수준이 섞여 있다.** 2023년부터는 1부 리그만 포함하므로 시즌 간 분포가 다르다.
 
+## 다음에 해 볼 것
+
+- **새 정보 추가**: 요원 조합, 선수 로스터 변경, 대회 단계(그룹/플레이오프). D16에서 본 것처럼 병목은 모델이 아니라 정보량이다.
+- **팀 강도 개선**: 지금은 이전 경기까지의 누적 라운드 승률(사전분포 보정)이다. Elo처럼 최근 경기에 가중치를 주는 방식과 비교해 볼 수 있다.
+- **시즌 내 순서**: 원본에 날짜가 없어 Match ID 순서를 썼다(대진표와 96–99% 일치, D13). 날짜를 확보하면 시즌 안에서도 시간순 분할로 검증할 수 있다.
+
 ## 설계 결정
 
-주요 결정과 근거는 [`docs/decisions.md`](docs/decisions.md)에 정리한다(분할 전략, A/B 대칭 증강, 진영 피처, 스키마 변경 등).
+주요 결정 22개와 근거는 [`docs/decisions.md`](docs/decisions.md)에 정리했다. 분할 전략(D1), A/B 반전 증강(D2), 진영 역산(D12), 멱등 ETL(D10), 시간 순서 검증(D13), 학습·서빙 공유(D17), 보정 방법 선택(D22) 등.

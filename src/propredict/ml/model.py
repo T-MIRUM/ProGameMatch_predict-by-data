@@ -1,4 +1,4 @@
-"""서빙용 모델 래퍼: LightGBM + isotonic 보정 + 범주 인코딩을 한 객체로 묶는다.
+"""서빙용 모델 래퍼: LightGBM + 확률 보정기 + 범주 인코딩을 한 객체로 묶는다.
 
 한 객체로 묶는 이유: API가 '학습 때와 똑같은' 범주 목록·보정기를 쓰도록 강제하기 위해서다.
 범주 순서가 학습 때와 다르면 LightGBM은 조용히 엉뚱한 분기를 탄다.
@@ -7,11 +7,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Protocol
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-from sklearn.isotonic import IsotonicRegression
 
 from propredict.ml.features import CATEGORICAL_FEATURES, FEATURES
 
@@ -28,11 +28,19 @@ def to_model_frame(X: pd.DataFrame, categories: dict[str, list[str]]) -> pd.Data
     return F
 
 
+class Calibrator(Protocol):
+    """보정기 인터페이스: 원출력 확률 배열 → 보정된 확률 배열 (구현은 ml/calibration.py)."""
+
+    name: str
+
+    def predict(self, p: np.ndarray) -> np.ndarray: ...
+
+
 @dataclass
 class RoundWinModel:
     classifier: lgb.LGBMClassifier
     categories: dict[str, list[str]]
-    calibrator: IsotonicRegression | None = None
+    calibrator: Calibrator | None = None
     meta: dict = field(default_factory=dict)
 
     def predict_raw(self, X: pd.DataFrame) -> np.ndarray:

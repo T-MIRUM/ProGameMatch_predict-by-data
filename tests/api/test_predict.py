@@ -89,6 +89,18 @@ def test_model_metrics_match_artifact(client):
     assert serving < lookup < 0.25  # 완료 기준: 룩업표보다 Brier가 낮다
     assert len(body["calibration"]["test_2025"]["calibrated"]) >= 8
     assert body["feature_importance"][0]["label"]
+    assert sum(c["selected"] for c in body["calibration_cv"]) == 1
+    assert body["calibration_method"] == next(c["method"] for c in body["calibration_cv"] if c["selected"])
+
+
+def test_probability_responds_to_score_and_is_never_certain(client):
+    """보정기 회귀 테스트 (D21·D22): isotonic 시절에는 스코어를 바꿔도 같은 계단에 머물러 확률이 그대로였다."""
+    probs = []
+    for a, b in [(7, 6), (3, 10), (12, 0)]:
+        req = {**SPEC_EXAMPLE, "score_a": a, "score_b": b, "round_number": a + b + 1}
+        probs.append(client.post("/api/predict", json=req).json()["win_probability_a"])
+    assert len(set(probs)) == 3
+    assert all(0.0 < p < 1.0 for p in probs)
 
 
 def test_predict_returns_503_without_model(client):

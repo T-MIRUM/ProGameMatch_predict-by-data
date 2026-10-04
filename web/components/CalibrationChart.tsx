@@ -1,7 +1,7 @@
 "use client";
 
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { CalibrationBin } from "@/lib/api";
+import type { CalibrationBin, CalibrationCandidate } from "@/lib/api";
 import { int, pct } from "@/lib/format";
 
 const C = {
@@ -18,7 +18,7 @@ type Pt = CalibrationBin & { series: string };
  * 신뢰도 곡선(reliability diagram). 예측 확률을 10% 구간으로 묶어
  * x = 구간의 평균 예측 확률, y = 그 구간에서 Team A가 실제로 이긴 비율을 찍는다.
  * 대각선에 붙을수록 '70%라고 말한 라운드는 실제로 70% 이긴다' — 확률을 숫자 그대로 믿어도 된다는 뜻이다.
- * 보정 전(LightGBM 원출력)과 보정 후(isotonic)를 겹쳐 보정이 무엇을 고쳤는지 보여 준다.
+ * 보정 전(LightGBM 원출력)과 보정 후(서비스 모델)를 겹쳐 보정이 무엇을 고쳤는지 보여 준다.
  */
 export default function CalibrationChart({ raw, calibrated }: { raw: CalibrationBin[]; calibrated: CalibrationBin[] }) {
   const r: Pt[] = raw.map((b) => ({ ...b, series: "보정 전" }));
@@ -135,6 +135,46 @@ export function CalibrationTable({ raw, calibrated }: { raw: CalibrationBin[]; c
               <td className="py-1.5 text-right">{pct(b.mean_predicted)}</td>
               <td className="py-1.5 text-right">{pct(b.observed_rate)}</td>
               <td className="py-1.5 text-right text-secondary">{int(b.count)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const METHOD_LABELS: Record<string, string> = {
+  none: "보정 안 함",
+  platt: "Platt (시그모이드)",
+  beta: "Beta",
+  isotonic: "Isotonic (계단 함수)",
+};
+
+/**
+ * 보정 방법을 어떻게 골랐는지: valid 보정용 데이터 안에서 경기 단위 5-fold 교차검증 결과.
+ * 테스트 시즌을 보고 고르면 그것도 누수라서, 이 표의 숫자만으로 선택했다(docs/decisions.md D22).
+ */
+export function CalibrationMethodTable({ cv }: { cv: CalibrationCandidate[] }) {
+  if (!cv.length) return null;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="text-xs text-muted">
+          <tr className="border-b border-border">
+            <th className="py-1.5 text-left font-normal">보정 방법</th>
+            <th className="py-1.5 text-right font-normal">CV Brier ↓</th>
+            <th className="py-1.5 text-right font-normal">CV ECE ↓</th>
+          </tr>
+        </thead>
+        <tbody className="tabular">
+          {cv.map((c) => (
+            <tr key={c.method} className={`border-b border-border/60 ${c.selected ? "bg-raised" : ""}`}>
+              <td className={`py-1.5 pl-1 ${c.selected ? "font-semibold text-text" : "text-secondary"}`}>
+                {METHOD_LABELS[c.method] ?? c.method}
+                {c.selected && <span className="ml-1.5 text-[11px] font-normal text-muted">선택</span>}
+              </td>
+              <td className="py-1.5 text-right">{c.cv_brier.toFixed(5)}</td>
+              <td className="py-1.5 pr-1 text-right text-secondary">{pct(c.cv_ece)}</td>
             </tr>
           ))}
         </tbody>

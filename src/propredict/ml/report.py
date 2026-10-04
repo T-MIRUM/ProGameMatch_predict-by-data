@@ -15,8 +15,10 @@ LABELS = {
     "lookup_buy_matchup": "② 구매유형 룩업표",
     "logistic": "③ 로지스틱 회귀",
     "lightgbm": "④ LightGBM",
-    "lightgbm_calibrated": "⑤ LightGBM + isotonic 보정 (서빙)",
+    "lightgbm_calibrated": "⑤ LightGBM + 보정 (서빙)",
 }
+# 기각한 후보: 표에만 참고로 싣는다(신뢰구간 비교 대상은 아니다)
+REJECTED = {"lightgbm_isotonic": "(참고) LightGBM + isotonic — 기각"}
 SPLITS = [("test_2025", "테스트 2025"), ("test_2026", "테스트 2026 (장비가치 전부 결측)")]
 
 
@@ -30,7 +32,9 @@ def render(m: dict) -> str:
     for key, title in SPLITS:
         out += [f"## {title}", "", "| 모델 | Brier ↓ | LogLoss ↓ | AUC ↑ | ECE ↓ |", "|---|---:|---:|---:|---:|"]
         base = m["models"]["constant_0.5"][key]["brier"]
-        for name, label in LABELS.items():
+        for name, label in {**LABELS, **REJECTED}.items():
+            if name not in m["models"]:
+                continue
             r = m["models"][name][key]
             gain = (base - r["brier"]) / base * 100
             out.append(
@@ -55,6 +59,17 @@ def render(m: dict) -> str:
                 f"| {b['bin_lower']:.1f}–{b['bin_upper']:.1f} | {b['mean_predicted']:.3f} | {b['observed_rate']:.3f} | {b['count']:,} |"
             )
         out.append("")
+    sel = m.get("calibration_selection")
+    if sel:
+        out += ["## 보정 방법 선택 (valid 보정용 절반, 경기 단위 5-fold 교차검증)", "",
+                "| 방법 | CV Brier ↓ | CV LogLoss ↓ | CV ECE ↓ | 선택 |", "|---|---:|---:|---:|:---:|"]  # fmt: skip
+        for r in sel["cv"]:
+            out.append(
+                f"| {r['method']} | {r['cv_brier']:.5f} | {r['cv_log_loss']:.5f} | {r['cv_ece']:.5f} | {'✔' if r['selected'] else ''} |"
+            )
+        out += ["", "선택 규칙: CV Brier가 가장 낮은 방법. 차이가 0.00001 이하면 파라미터가 적은 쪽(none → platt → beta → isotonic)을 고른다.",
+                "", f"선택된 보정기 `{sel['method']}`: 원출력 0.01–0.99 구간에서 서로 다른 출력값 {sel['distinct_outputs']}개, "
+                f"출력 범위 {sel['output_range'][0]:.3f}–{sel['output_range'][1]:.3f}.", ""]  # fmt: skip
     out += ["## 피처 중요도 (LightGBM TreeSHAP, 테스트 2025 표본의 평균 |기여도|, 로그오즈)", "",
             "| 순위 | 피처 | 평균 \\|SHAP\\| |", "|---:|---|---:|"]  # fmt: skip
     for i, f in enumerate(m["feature_importance"], 1):

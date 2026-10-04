@@ -154,4 +154,13 @@ export type ModelMetrics = {
   calibration: Record<string, { raw: CalibrationBin[]; calibrated: CalibrationBin[] }>;
   significance: Record<string, Record<string, Significance>>;
   feature_importance: { feature: string; label: string; mean_abs_shap: number }[];
+  calibration_method: string;
+  calibration_cv: CalibrationCandidate[];
+};
+export type CalibrationCandidate = {
+  method: string;
+  cv_brier: number;
+  cv_log_loss: number;
+  cv_ece: number;
+  selected: boolean;
 };
